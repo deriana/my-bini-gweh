@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from src.core import load_config, save_config, get_mcp_config_path, db, app_logger
+from src.core import load_config, save_config, get_mcp_config_path, db, app_logger, persona_engine
 from src.tts import TTSEngine
 from src.mcp import MCPManager
 from src.llm import LLMService
@@ -86,14 +86,43 @@ async def settings_page():
 @app.get("/api/config")
 async def get_config():
     """Returns runtime info for the client stage."""
+    persona_data = persona_engine.get_persona_data()
     return {
         "models": config["live2d"]["models"],
         "default_model": config["live2d"]["default_model"],
         "voices": config["tts"]["available_voices"],
         "default_voice": config["tts"]["default_voice"],
         "llm_model": llm_service.model,
-        "mcp_tools": [t["function"]["name"] for t in mcp_manager.get_openai_tools()]
+        "mcp_tools": [t["function"]["name"] for t in mcp_manager.get_openai_tools()],
+        "persona": persona_data
     }
+
+
+@app.get("/api/persona")
+async def get_persona_api():
+    """Returns persona archetypes, sliders, and mood."""
+    return persona_engine.get_persona_data()
+
+
+@app.post("/api/persona")
+async def update_persona_api(payload: Dict[str, Any]):
+    """Updates persona archetypes, sliders, and custom presets."""
+    persona_engine.update_persona(payload)
+    return {"status": "success", "message": "Sifat dan persona berhasil diperbarui!"}
+
+
+@app.get("/api/mood")
+async def get_mood_api():
+    """Returns current emotional mood state."""
+    data = persona_engine.get_persona_data()
+    return {"mood": data.get("current_mood", "Ceria")}
+
+
+@app.post("/api/mood/reset")
+async def reset_mood_api():
+    """Resets emotional mood state to Ceria."""
+    persona_engine.update_mood("Ceria")
+    return {"status": "success", "mood": "Ceria"}
 
 
 @app.get("/api/settings")

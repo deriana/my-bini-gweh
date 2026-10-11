@@ -58,7 +58,7 @@ async function init() {
 
 // Apply stored custom wallpaper or preset
 function applyStoredBackground() {
-  const bgType = localStorage.getItem("vtuber_bg") || "gradient-dark";
+  const bgType = localStorage.getItem("vtuber_bg") || "anime-room";
   const bgUrl = localStorage.getItem("vtuber_bg_url");
 
   document.body.className = "";
@@ -76,8 +76,13 @@ function applyStoredBackground() {
     document.body.classList.add("bg-obs-greenscreen");
   } else if (bgType === "obs-transparent") {
     document.body.classList.add("bg-obs-transparent");
-  } else {
+  } else if (bgType === "gradient-dark") {
     document.body.classList.add("bg-gradient-dark");
+  } else {
+    // Default: High quality anime room wallpaper
+    document.body.style.backgroundImage = "url('/backgrounds/room-interior-illustration.jpeg')";
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
   }
 }
 
@@ -85,7 +90,7 @@ function applyStoredBackground() {
 function initPixi() {
   pixiApp = new PIXI.Application({
     view: canvas,
-    transparent: true,
+    backgroundAlpha: 0, // CRITICAL: Makes canvas transparent so anime wallpaper shows through
     autoDensity: true,
     resizeTo: window,
     antialias: true,
@@ -104,11 +109,50 @@ async function loadServerConfig() {
     const res = await fetch("/api/config");
     appConfig = await res.json();
     const modelToLoad = appConfig.default_model || "mao_pro";
+    if (appConfig.persona && appConfig.persona.current_mood) {
+      updateMoodBadge(appConfig.persona.current_mood);
+    }
     await switchModel(modelToLoad);
   } catch (err) {
     console.error("Failed to load server config:", err);
     updateStatus("Config Error", "status-offline");
   }
+}
+
+// Real-time Mood Badge helper
+function updateMoodBadge(mood) {
+  const moodPill = document.getElementById("mood-pill");
+  const moodText = document.getElementById("mood-text");
+  const moodIcon = document.getElementById("mood-icon");
+  if (!moodPill || !moodText) return;
+
+  const m = (mood || "Ceria").toLowerCase();
+  let icon = "💖";
+
+  if (m.includes("ngambek") || m.includes("marah") || m.includes("kesal")) {
+    icon = "😤";
+    moodPill.style.borderColor = "rgba(239, 68, 68, 0.5)";
+    moodPill.style.color = "#f87171";
+  } else if (m.includes("tersipu") || m.includes("malu") || m.includes("blush")) {
+    icon = "😳";
+    moodPill.style.borderColor = "rgba(244, 114, 182, 0.5)";
+    moodPill.style.color = "#f472b6";
+  } else if (m.includes("khawatir") || m.includes("sedih")) {
+    icon = "🥺";
+    moodPill.style.borderColor = "rgba(96, 165, 250, 0.5)";
+    moodPill.style.color = "#60a5fa";
+  } else if (m.includes("manja") || m.includes("sayang")) {
+    icon = "🥰";
+    moodPill.style.borderColor = "rgba(236, 72, 153, 0.5)";
+    moodPill.style.color = "#ec4899";
+  } else {
+    icon = "✨";
+    moodPill.style.borderColor = "rgba(16, 185, 129, 0.5)";
+    moodPill.style.color = "#34d399";
+  }
+
+  if (moodIcon) moodIcon.textContent = icon;
+  moodText.textContent = `Mood: ${mood}`;
 }
 
 // ==========================================
@@ -365,6 +409,8 @@ function connectWebSocket() {
 
       if (msg.type === "status") {
         updateStatus(msg.status, "status-thinking");
+      } else if (msg.type === "mood_update") {
+        updateMoodBadge(msg.mood);
       } else if (msg.type === "audio") {
         queueAudioPayload(msg);
         updateStatus("Berbicara...", "status-online");

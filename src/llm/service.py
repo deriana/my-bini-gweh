@@ -10,14 +10,14 @@ from fastapi import WebSocket
 from src.live2d import parse_emotion_and_clean
 from src.tts import TTSEngine
 from src.mcp import MCPManager
-from src.core import app_logger, db
+from src.core import app_logger, db, persona_engine, extract_mood_from_text
 
 
 class LLMService:
     """
     Handles interactions with OpenAI-compatible LLMs (Ollama, Groq, OpenAI, Gemini).
-    Streams responses sentence-by-sentence, coordinates Edge-TTS speech generation,
-    records activity to AppLogger, and executes MCP tools when requested.
+    Integrates dynamic Persona archetype & Mood tracking, streaming Edge-TTS speech generation,
+    and executes MCP tools when requested.
     """
 
     def __init__(self, config: Dict[str, Any], tts_engine: TTSEngine, mcp_manager: MCPManager):
@@ -33,7 +33,6 @@ class LLMService:
         self.api_key = os.getenv("OPENAI_API_KEY", llm_cfg.get("api_key", "ollama"))
         self.model = os.getenv("LLM_MODEL", llm_cfg.get("model", "qwen2.5:3b"))
         self.temperature = float(llm_cfg.get("temperature", 0.7))
-        self.system_prompt = llm_cfg.get("system_prompt", "Kamu adalah asisten AI pribadi yang ramah.")
 
         self.client = AsyncOpenAI(
             base_url=self.base_url,
@@ -47,7 +46,8 @@ class LLMService:
         self._init_client()
 
     def create_initial_history(self) -> List[Dict[str, Any]]:
-        return [{"role": "system", "content": self.system_prompt}]
+        system_prompt = persona_engine.build_system_prompt()
+        return [{"role": "system", "content": system_prompt}]
 
     def format_user_content(self, text: str, image_base64: Optional[str] = None) -> Any:
         if not image_base64:
@@ -73,6 +73,10 @@ class LLMService:
         active_model_key: str,
         active_voice: str
     ) -> str:
+        # Update system prompt dynamically to reflect latest persona & mood
+        if messages and messages[0].get("role") == "system":
+            messages[0]["content"] = persona_engine.build_system_prompt()
+
         model_info = self.config["live2d"]["models"].get(active_model_key, {})
         emotion_map = model_info.get("emotions", {})
         tools = self.mcp_manager.get_openai_tools()
@@ -134,6 +138,16 @@ class LLMService:
                         buffer = buffer[split_idx:]
 
                         if sentence:
+                            # 1. Check for mood updates [mood:xxx]
+                            sentence, detected_mood = extract_mood_from_text(sentence)
+                            if detected_mood:
+                                persona_engine.update_mood(detected_mood)
+                                await websocket.send_json({
+                                    "type": "mood_update",
+                                    "mood": detected_mood
+                                })
+
+                            # 2. Extract emotion tag for Live2D
                             clean_text, emotion, expression_idx = parse_emotion_and_clean(sentence, emotion_map)
                             if emotion:
                                 app_logger.info("Emotion", f"Detected emotion: [{emotion}] -> Expr index {expression_idx}")
@@ -163,6 +177,14 @@ class LLMService:
             # Process leftover text in buffer
             if buffer.strip():
                 sentence = buffer.strip()
+                sentence, detected_mood = extract_mood_from_text(sentence)
+                if detected_mood:
+                    persona_engine.update_mood(detected_mood)
+                    await websocket.send_json({
+                        "type": "mood_update",
+                        "mood": detected_mood
+                    })
+
                 clean_text, emotion, expression_idx = parse_emotion_and_clean(sentence, emotion_map)
                 if clean_text:
                     audio_result = await self.tts_engine.generate_audio(clean_text, active_voice, emotion)

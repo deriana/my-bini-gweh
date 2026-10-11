@@ -1,14 +1,17 @@
 /**
  * Settings Page Logic
- * Manages comprehensive configuration for LLM, TTS, Live2D, Custom Wallpaper, SQLite Memory, and System Logs.
+ * Manages comprehensive configuration for Persona Archetypes, Sliders Tuning,
+ * Real-Time Mood, LLM, TTS, Live2D, Anime Wallpapers, SQLite Memory, and System Logs.
  */
 
 let currentConfig = null;
+let personaData = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initProviderPresets();
   await loadSettings();
+  await loadPersonaSettings();
   await loadHistory();
   initLogPolling();
   initAppearanceSettings();
@@ -29,7 +32,6 @@ function initTabs() {
       const target = document.getElementById(tab.dataset.tab);
       if (target) target.classList.add("active");
 
-      // Auto load logs when log tab is clicked
       if (tab.dataset.tab === "tab-logs") {
         fetchLogs();
       }
@@ -38,7 +40,123 @@ function initTabs() {
 }
 
 // ==========================================
-// 2. Load & Populate Settings
+// 2. Persona, Archetypes & Mood (Konsep A, B, C)
+// ==========================================
+async function loadPersonaSettings() {
+  try {
+    const res = await fetch("/api/persona");
+    personaData = await res.json();
+
+    document.getElementById("persona-char-name").value = personaData.character_name || "Ryza";
+    document.getElementById("persona-user-call").value = personaData.user_call_name || "Sayang";
+
+    // Sliders
+    const aff = personaData.affection_level !== undefined ? personaData.affection_level : 75;
+    const tsun = personaData.tsundere_level !== undefined ? personaData.tsundere_level : 60;
+    const nrg = personaData.energy_level !== undefined ? personaData.energy_level : 70;
+
+    document.getElementById("slider-affection").value = aff;
+    document.getElementById("aff-val").textContent = `${aff}%`;
+
+    document.getElementById("slider-tsundere").value = tsun;
+    document.getElementById("tsun-val").textContent = `${tsun}%`;
+
+    document.getElementById("slider-energy").value = nrg;
+    document.getElementById("energy-val").textContent = `${nrg}%`;
+
+    // Sliders listeners
+    document.getElementById("slider-affection").addEventListener("input", (e) => {
+      document.getElementById("aff-val").textContent = `${e.target.value}%`;
+    });
+    document.getElementById("slider-tsundere").addEventListener("input", (e) => {
+      document.getElementById("tsun-val").textContent = `${e.target.value}%`;
+    });
+    document.getElementById("slider-energy").addEventListener("input", (e) => {
+      document.getElementById("energy-val").textContent = `${e.target.value}%`;
+    });
+
+    // Mood
+    const moodSelect = document.getElementById("persona-mood-select");
+    moodSelect.value = personaData.current_mood || "Ceria";
+
+    // Reset mood
+    document.getElementById("reset-mood-btn").addEventListener("click", async () => {
+      const resetRes = await fetch("/api/mood/reset", { method: "POST" });
+      if (resetRes.ok) {
+        moodSelect.value = "Ceria";
+        showToast("Mood direset ke: Ceria 💖");
+      }
+    });
+
+    renderArchetypeCards();
+  } catch (err) {
+    console.error("Failed to load persona data:", err);
+  }
+}
+
+function renderArchetypeCards() {
+  const container = document.getElementById("archetype-list");
+  const promptInput = document.getElementById("archetype-prompt-input");
+  container.innerHTML = "";
+
+  const archetypes = personaData.archetypes || {};
+  const activeKey = personaData.active_archetype || "tsundere";
+
+  for (const [key, item] of Object.entries(archetypes)) {
+    const card = document.createElement("div");
+    card.className = `archetype-card ${key === activeKey ? "selected" : ""}`;
+    card.dataset.key = key;
+
+    card.innerHTML = `
+      <div class="archetype-card-title">${item.name || key}</div>
+      <div class="archetype-card-desc">${item.description || ""}</div>
+    `;
+
+    card.addEventListener("click", () => {
+      document.querySelectorAll(".archetype-card").forEach((c) => c.classList.remove("selected"));
+      card.classList.add("selected");
+      personaData.active_archetype = key;
+      promptInput.value = item.prompt || "";
+    });
+
+    container.appendChild(card);
+  }
+
+  // Set active prompt textarea
+  if (archetypes[activeKey]) {
+    promptInput.value = archetypes[activeKey].prompt || "";
+  }
+
+  // Update prompt on edit
+  promptInput.addEventListener("input", (e) => {
+    const active = personaData.active_archetype;
+    if (active && personaData.archetypes[active]) {
+      personaData.archetypes[active].prompt = e.target.value;
+    }
+  });
+
+  // Add custom archetype button
+  document.getElementById("add-archetype-btn").onclick = () => {
+    const name = prompt("Masukkan nama archetype baru (misal: Maid, Tomboy, Ratu):");
+    if (!name) return;
+    const key = name.toLowerCase().replace(/[^a-z0-9]/g, "_");
+    const desc = prompt("Masukkan deskripsi singkat archetype ini:") || "";
+    const promptText = prompt("Masukkan instruksi prompt persona:", `Kamu memiliki sifat ${name}: ...`) || "";
+
+    if (!personaData.archetypes) personaData.archetypes = {};
+    personaData.archetypes[key] = {
+      name: name,
+      description: desc,
+      prompt: promptText,
+    };
+    personaData.active_archetype = key;
+    renderArchetypeCards();
+    showToast(`Template '${name}' berhasil ditambahkan!`);
+  };
+}
+
+// ==========================================
+// 3. Load & Populate LLM, TTS, Live2D
 // ==========================================
 async function loadSettings() {
   try {
@@ -46,7 +164,7 @@ async function loadSettings() {
     const data = await res.json();
     currentConfig = data.config;
 
-    // 1. LLM
+    // LLM
     const llm = currentConfig.llm || {};
     document.getElementById("llm-provider").value = llm.provider || "ollama";
     document.getElementById("llm-model").value = llm.model || "qwen2.5:3b";
@@ -54,9 +172,8 @@ async function loadSettings() {
     document.getElementById("llm-api-key").value = llm.api_key || "";
     document.getElementById("llm-temperature").value = llm.temperature || 0.7;
     document.getElementById("temp-val").textContent = llm.temperature || 0.7;
-    document.getElementById("llm-system-prompt").value = llm.system_prompt || "";
 
-    // 2. TTS
+    // TTS
     const tts = currentConfig.tts || {};
     const voiceSelect = document.getElementById("tts-voice");
     voiceSelect.innerHTML = "";
@@ -68,7 +185,7 @@ async function loadSettings() {
       voiceSelect.appendChild(opt);
     });
 
-    // 3. Live2D Models
+    // Live2D Models
     const l2d = currentConfig.live2d || {};
     const modelSelect = document.getElementById("live2d-default-model");
     modelSelect.innerHTML = "";
@@ -121,19 +238,40 @@ function initProviderPresets() {
 }
 
 // ==========================================
-// 3. Save Settings
+// 4. Save Settings
 // ==========================================
 async function saveSettings() {
   if (!currentConfig) return;
 
-  // Build updated config
+  // 1. Save Persona
+  if (personaData) {
+    personaData.character_name = document.getElementById("persona-char-name").value.trim() || "Ryza";
+    personaData.user_call_name = document.getElementById("persona-user-call").value.trim() || "Sayang";
+    personaData.affection_level = parseInt(document.getElementById("slider-affection").value);
+    personaData.tsundere_level = parseInt(document.getElementById("slider-tsundere").value);
+    personaData.energy_level = parseInt(document.getElementById("slider-energy").value);
+    personaData.current_mood = document.getElementById("persona-mood-select").value;
+
+    const activeKey = personaData.active_archetype;
+    if (activeKey && personaData.archetypes[activeKey]) {
+      personaData.archetypes[activeKey].prompt = document.getElementById("archetype-prompt-input").value.trim();
+    }
+
+    await fetch("/api/persona", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(personaData),
+    });
+  }
+
+  // 2. Save LLM & TTS
   currentConfig.llm = {
     provider: document.getElementById("llm-provider").value,
     model: document.getElementById("llm-model").value.trim(),
     base_url: document.getElementById("llm-base-url").value.trim(),
     api_key: document.getElementById("llm-api-key").value.trim(),
     temperature: parseFloat(document.getElementById("llm-temperature").value),
-    system_prompt: document.getElementById("llm-system-prompt").value.trim(),
+    system_prompt: currentConfig.llm ? currentConfig.llm.system_prompt : "",
   };
 
   currentConfig.tts.default_voice = document.getElementById("tts-voice").value;
@@ -147,7 +285,7 @@ async function saveSettings() {
     });
     const result = await res.json();
     if (res.ok) {
-      showToast(result.message || "Pengaturan berhasil disimpan!");
+      showToast("Semua pengaturan & sifat karakter berhasil disimpan!");
     } else {
       showToast("Gagal menyimpan: " + (result.detail || "Error"), "#ef4444");
     }
@@ -157,14 +295,20 @@ async function saveSettings() {
 }
 
 // ==========================================
-// 4. Background & Appearance
+// 5. Background & Appearance
 // ==========================================
 function initAppearanceSettings() {
-  const currentBg = localStorage.getItem("vtuber_bg") || "gradient-dark";
+  const currentBg = localStorage.getItem("vtuber_bg") || "custom-url";
+  const currentUrl = localStorage.getItem("vtuber_bg_url") || "/backgrounds/room-interior-illustration.jpeg";
   const cards = document.querySelectorAll(".preset-bg-card");
 
   cards.forEach((card) => {
-    if (card.dataset.bg === currentBg) {
+    const bgVal = card.dataset.bg;
+    const urlVal = card.dataset.url;
+
+    if (bgVal === "custom-url" && urlVal === currentUrl) {
+      card.classList.add("selected");
+    } else if (bgVal === currentBg && bgVal !== "custom-url") {
       card.classList.add("selected");
     } else {
       card.classList.remove("selected");
@@ -173,14 +317,22 @@ function initAppearanceSettings() {
     card.addEventListener("click", () => {
       cards.forEach((c) => c.classList.remove("selected"));
       card.classList.add("selected");
-      localStorage.setItem("vtuber_bg", card.dataset.bg);
-      showToast(`Wallpaper diubah ke: ${card.textContent}`);
+
+      if (card.dataset.bg === "custom-url" && card.dataset.url) {
+        localStorage.setItem("vtuber_bg", "custom-url");
+        localStorage.setItem("vtuber_bg_url", card.dataset.url);
+        showToast(`Wallpaper diterapkan: ${card.textContent}`);
+      } else {
+        localStorage.setItem("vtuber_bg", card.dataset.bg);
+        localStorage.removeItem("vtuber_bg_url");
+        showToast(`Tema diterapkan: ${card.textContent}`);
+      }
     });
   });
 
   // URL Background
   const urlInput = document.getElementById("bg-url-input");
-  urlInput.value = localStorage.getItem("vtuber_bg_url") || "";
+  urlInput.value = currentUrl;
   urlInput.addEventListener("change", (e) => {
     const val = e.target.value.trim();
     if (val) {
@@ -226,7 +378,7 @@ function initAppearanceSettings() {
 }
 
 // ==========================================
-// 5. Memory & History (SQLite)
+// 6. Memory & History (SQLite)
 // ==========================================
 async function loadHistory() {
   const box = document.getElementById("chat-history-box");
@@ -268,10 +420,8 @@ async function loadHistory() {
 }
 
 // ==========================================
-// 6. Real-time Model & System Logs
+// 7. Real-time Model & System Logs
 // ==========================================
-let logPollInterval = null;
-
 async function fetchLogs() {
   const consoleBox = document.getElementById("log-console");
   try {
@@ -306,13 +456,11 @@ function initLogPolling() {
 }
 
 // ==========================================
-// 7. Action Handlers (Voice Test, Memory Reset)
+// 8. Action Handlers (Voice Test, Memory Reset)
 // ==========================================
 function initActionButtons() {
-  // Save All Button
   document.getElementById("save-all-btn").addEventListener("click", saveSettings);
 
-  // Test Voice
   document.getElementById("tts-test-btn").addEventListener("click", async () => {
     const voice = document.getElementById("tts-voice").value;
     const text = document.getElementById("tts-test-text").value.trim() || "Halo! Ini contoh tes suara.";
@@ -341,7 +489,6 @@ function initActionButtons() {
     }
   });
 
-  // Reset Memory
   document.getElementById("reset-memory-btn").addEventListener("click", async () => {
     if (!confirm("Reset memori obrolan saat ini? AI akan melupakan konteks sebelumnya.")) return;
     try {
@@ -359,7 +506,6 @@ function initActionButtons() {
     }
   });
 
-  // Delete All History
   document.getElementById("delete-all-history-btn").addEventListener("click", async () => {
     if (!confirm("HAPUS SELURUH riwayat percakapan dari database SQLite? Tindakan ini tidak bisa dibatalkan.")) return;
     try {
