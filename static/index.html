@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Personal AI VTuber</title>
+  <link rel="stylesheet" href="/static/style.css">
+  
+  <!-- Live2D & Pixi.js local dependencies -->
+  <script src="/static/libs/live2dcubismcore.min.js"></script>
+  <script src="/static/libs/live2d.min.js"></script>
+  <script src="/static/libs/pixi.min.js"></script>
+  <script src="/static/libs/cubism4.min.js"></script>
+</head>
+<body>
+  <div id="app-container">
+    <!-- Header / Control Bar -->
+    <header id="control-bar">
+      <div class="brand">
+        <span class="brand-badge">LIVE</span>
+        <h1>AI Companion</h1>
+      </div>
+      
+      <div class="controls">
+        <div class="control-item">
+          <label for="model-select">Model:</label>
+          <select id="model-select"></select>
+        </div>
+
+        <div class="control-item">
+          <label for="voice-select">Suara:</label>
+          <select id="voice-select"></select>
+        </div>
+
+        <button id="camera-toggle-btn" class="icon-btn" title="Aktifkan Kamera (Vision)">
+          📷 <span class="btn-text">Kamera</span>
+        </button>
+
+        <div id="status-pill" class="pill status-offline">Offline</div>
+      </div>
+    </header>
+
+    <!-- Main Stage for Live2D Canvas -->
+    <main id="stage">
+      <canvas id="live2d-canvas"></canvas>
+
+      <!-- Floating Subtitles / Speech Bubble -->
+      <div id="speech-bubble" class="speech-bubble hidden">
+        <div class="bubble-speaker">Ryza</div>
+        <div id="bubble-text" class="bubble-text">...</div>
+      </div>
+
+      <!-- Draggable Camera Video Preview -->
+      <div id="camera-preview-box" class="camera-box hidden">
+        <div class="camera-header">
+          <span>Vision Camera</span>
+          <button id="camera-close-btn">&times;</button>
+        </div>
+        <video id="camera-video" autoplay playsinline muted></video>
+        <div class="camera-tag">Active on Chat</div>
+      </div>
+    </main>
+
+    <!-- Bottom Input Bar -->
+    <footer id="input-container">
+      <div class="input-card">
+        <button id="mic-btn" class="action-btn mic-btn" title="Bicara (Voice Input)">
+          🎙️
+        </button>
+        <input 
+          type="text" 
+          id="chat-input" 
+          placeholder="Ketik pesan atau bicara lewat mikrofon..." 
+          autocomplete="off"
+        />
+        <button id="send-btn" class="action-btn send-btn" title="Kirim">
+          ➤
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
