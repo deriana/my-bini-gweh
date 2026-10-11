@@ -4,7 +4,7 @@ import base64
 import asyncio
 from typing import Optional, Tuple, List
 import edge_tts
-from live2d_helper import get_audio_volume_chunks
+from src.live2d import get_audio_volume_chunks
 
 
 class TTSEngine:

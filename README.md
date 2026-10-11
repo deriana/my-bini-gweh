@@ -70,19 +70,24 @@ Buka peramban (browser) di: **[http://localhost:8080](http://localhost:8080)**
 
 ```text
 personal-ai-vtuber/
-├── app.py                 # Backend FastAPI (WebSocket, Streaming LLM, MCP, Vision)
-├── tts_engine.py          # Edge-TTS engine & base64 volume chunk calculator
-├── live2d_helper.py       # Parser tag emosi ([joy], dll) & audio RMS lip-sync
-├── mcp_manager.py         # MCP stdio client & OpenAI tool caller
-├── mcp_servers.json       # Daftar server tool MCP pribadi
-├── config.json            # Konfigurasi model Live2D, TTS, dan LLM
-├── requirements.txt       # Dependensi Python minimalis
-├── live2d-models/         # Berisi model mao_pro, shiroko, shizuku
-└── static/
-    ├── index.html         # Antarmuka web modern
-    ├── app.js             # Controller Pixi.js, Audio Lip-sync, Mic, Kamera
-    ├── style.css          # Desain UI glassmorphism dark-mode
-    └── libs/              # Library Cubism SDK & PixiJS
+├── app.py                 # Main entrypoint FastAPI server
+├── run.sh                 # Launcher script
+├── requirements.txt       # Minimal dependencies
+├── config/                # Central configurations
+│   ├── config.json        # Main configuration (LLM, TTS, Live2D models)
+│   └── mcp_servers.json   # MCP (Model Context Protocol) tool servers
+├── src/                   # Modular backend domains
+│   ├── core/              # Central config loader & paths
+│   ├── tts/               # Edge-TTS engine & prosody mapping
+│   ├── live2d/            # Emotion parser & RMS lip-sync volume analyzer
+│   ├── mcp/               # MCP client & OpenAI tool caller
+│   └── llm/               # Streaming LLM service & conversation coordinator
+├── live2d-models/         # Live2D models (mao_pro, shiroko, shizuku)
+└── static/                # Clean frontend UI
+    ├── index.html         # Modern web interface
+    ├── app.js             # Pixi.js controller, Lip-sync, Mic STT, Webcam
+    ├── style.css          # Glassmorphic dark theme
+    └── libs/              # Cubism SDK & Pixi.js libraries
 ```
 
 ---

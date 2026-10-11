@@ -19,7 +19,7 @@ class MCPManager:
     Converts tools to OpenAI format and handles tool execution.
     """
 
-    def __init__(self, config_path: str = "mcp_servers.json"):
+    def __init__(self, config_path: str = "config/mcp_servers.json"):
         self.config_path = config_path
         self.exit_stack: Optional[AsyncExitStack] = None
         self.sessions: Dict[str, ClientSession] = {}
