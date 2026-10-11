@@ -357,7 +357,7 @@ async def websocket_endpoint(websocket: WebSocket):
 
 
 if __name__ == "__main__":
-    host = config["server"].get("host", "127.0.0.1")
-    port = config["server"].get("port", 8000)
+    host = os.getenv("HOST", config["server"].get("host", "127.0.0.1"))
+    port = int(os.getenv("PORT", config["server"].get("port", 8080)))
     print(f"[Server] Running on http://{host}:{port}")
     uvicorn.run("app:app", host=host, port=port, reload=True)

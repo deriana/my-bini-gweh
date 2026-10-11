@@ -62,7 +62,7 @@ export LLM_MODEL="llama-3.3-70b-versatile"
 ```bash
 python app.py
 ```
-Buka peramban (browser) di: **[http://localhost:8000](http://localhost:8000)**
+Buka peramban (browser) di: **[http://localhost:8080](http://localhost:8080)**
 
 ---
 

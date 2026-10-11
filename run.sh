@@ -10,6 +10,6 @@ fi
 
 echo "=========================================="
 echo " Starting Personal AI VTuber Assistant... "
-echo " URL: http://localhost:8000"
+echo " URL: http://localhost:8080"
 echo "=========================================="
 python3 app.py
