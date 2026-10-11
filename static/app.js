@@ -30,6 +30,17 @@ const cameraVideo = document.getElementById("camera-video");
 const cameraToggleBtn = document.getElementById("camera-toggle-btn");
 const cameraCloseBtn = document.getElementById("camera-close-btn");
 
+// Screen Vision (Desktop Co-Pilot) State
+let screenStream = null;
+const screenBox = document.getElementById("screen-preview-box");
+const screenVideo = document.getElementById("screen-video");
+const screenToggleBtn = document.getElementById("screen-toggle-btn");
+const screenCloseBtn = document.getElementById("screen-close-btn");
+
+// VAD Hands-Free Continuous Voice Mode
+let isVadMode = false;
+const vadBtn = document.getElementById("vad-btn");
+
 // UI Elements
 const canvas = document.getElementById("live2d-canvas");
 const statusPill = document.getElementById("status-pill");
@@ -54,6 +65,11 @@ async function init() {
   initEventListeners();
   initTransformControls();
   initSpeechRecognition();
+
+  // Proactive greeting after model is loaded
+  setTimeout(fetchProactiveGreeting, 2500);
+  // Recurring wellness & hydration reminder every 30 minutes
+  setInterval(fetchProactiveReminder, 30 * 60 * 1000);
 }
 
 // Apply stored custom wallpaper or preset
@@ -204,6 +220,12 @@ async function switchModel(modelKey) {
     enableModelDragging();
 
     updateStatus("Online", "status-online");
+
+    // Trigger proactive greeting upon startup/model switch
+    if (!window.__hasGreeted) {
+      window.__hasGreeted = true;
+      setTimeout(fetchProactiveGreeting, 1200);
+    }
   } catch (err) {
     console.error("Failed to load Live2D model:", err);
     updateStatus("Model Error", "status-offline");
@@ -234,7 +256,10 @@ function saveTransform() {
   localStorage.setItem(`vtuber_transform_${currentModelKey}`, JSON.stringify(data));
 }
 
-// Drag & Drop Model Pan
+// Drag & Drop Model Pan, Eye/Head Mouse Tracking, and Touch Reactions
+let pointerDownPos = { x: 0, y: 0 };
+let pointerDownTime = 0;
+
 function enableModelDragging() {
   if (!currentModel) return;
 
@@ -242,6 +267,8 @@ function enableModelDragging() {
     isDragging = true;
     dragStart.x = event.data.global.x - currentModel.x;
     dragStart.y = event.data.global.y - currentModel.y;
+    pointerDownPos = { x: event.data.global.x, y: event.data.global.y };
+    pointerDownTime = Date.now();
   });
 
   pixiApp.stage.interactive = true;
@@ -251,6 +278,31 @@ function enableModelDragging() {
       currentPosY = event.data.global.y - dragStart.y;
       currentModel.x = currentPosX;
       currentModel.y = currentPosY;
+    } else if (currentModel && typeof currentModel.focus === "function") {
+      // Real-time eye & head mouse tracking
+      currentModel.focus(event.data.global.x, event.data.global.y);
+    }
+  });
+
+  currentModel.on("pointerup", (event) => {
+    if (isDragging) {
+      isDragging = false;
+      saveTransform();
+
+      // Check if action was a pure tap/click rather than a drag
+      const dist = Math.hypot(event.data.global.x - pointerDownPos.x, event.data.global.y - pointerDownPos.y);
+      const elapsed = Date.now() - pointerDownTime;
+      if (dist < 15 && elapsed < 450) {
+        const bounds = currentModel.getBounds();
+        const relY = (event.data.global.y - bounds.y) / (bounds.height || 1);
+        let touchType = "headpat";
+        if (relY > 0.52) {
+          touchType = "body";
+        } else if (relY > 0.28) {
+          touchType = "poke";
+        }
+        triggerTouchReaction(touchType);
+      }
     }
   });
 
@@ -267,6 +319,106 @@ function enableModelDragging() {
       saveTransform();
     }
   });
+}
+
+// Helper to show speech bubble
+function showSpeechBubble(text) {
+  bubbleText.textContent = text;
+  speechBubble.classList.remove("hidden");
+  if (bubbleTimeout) clearTimeout(bubbleTimeout);
+  bubbleTimeout = setTimeout(() => {
+    speechBubble.classList.add("hidden");
+  }, 4500);
+}
+
+// Touch Reaction Trigger (Headpat, Poke, Body Tap)
+async function triggerTouchReaction(touchType) {
+  if (isPlayingAudio) return;
+  try {
+    const res = await fetch("/api/interact/touch", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        touch_type: touchType,
+        model: currentModelKey || "mao_pro",
+        voice: (appConfig && appConfig.default_voice) ? appConfig.default_voice : "id-ID-GadisNeural",
+        session_id: "default"
+      })
+    });
+    const data = await res.json();
+    if (res.ok && data.text) {
+      if (data.audio) {
+        queueAudioPayload({
+          text: data.text,
+          clean_text: data.text,
+          audio: data.audio,
+          volumes: data.volumes || [],
+          expression_index: data.expression_index
+        });
+      } else {
+        if (data.expression_index !== null && data.expression_index !== undefined) {
+          setModelExpression(data.expression_index);
+        }
+        showSpeechBubble(data.text);
+      }
+    }
+  } catch (err) {
+    console.error("Touch reaction error:", err);
+  }
+}
+
+// Autonomous Proactive Greeting (Time-based Greeting on Startup)
+async function fetchProactiveGreeting() {
+  if (isPlayingAudio) return;
+  try {
+    const res = await fetch(`/api/proactive/greeting?model=${currentModelKey || "mao_pro"}`);
+    const data = await res.json();
+    if (res.ok && data.text) {
+      if (data.audio) {
+        queueAudioPayload({
+          text: data.text,
+          clean_text: data.text,
+          audio: data.audio,
+          volumes: data.volumes || [],
+          expression_index: data.expression_index
+        });
+      } else {
+        if (data.expression_index !== null && data.expression_index !== undefined) {
+          setModelExpression(data.expression_index);
+        }
+        showSpeechBubble(data.text);
+      }
+    }
+  } catch (err) {
+    console.error("Proactive greeting error:", err);
+  }
+}
+
+// Periodic Wellness & Break Reminder
+async function fetchProactiveReminder() {
+  if (isPlayingAudio) return;
+  try {
+    const res = await fetch(`/api/proactive/reminder?model=${currentModelKey || "mao_pro"}`);
+    const data = await res.json();
+    if (res.ok && data.text) {
+      if (data.audio) {
+        queueAudioPayload({
+          text: data.text,
+          clean_text: data.text,
+          audio: data.audio,
+          volumes: data.volumes || [],
+          expression_index: data.expression_index
+        });
+      } else {
+        if (data.expression_index !== null && data.expression_index !== undefined) {
+          setModelExpression(data.expression_index);
+        }
+        showSpeechBubble(data.text);
+      }
+    }
+  } catch (err) {
+    console.error("Proactive reminder error:", err);
+  }
 }
 
 // Zoom & Transform Controls
@@ -343,6 +495,15 @@ function playNextAudio() {
     bubbleTimeout = setTimeout(() => {
       speechBubble.classList.add("hidden");
     }, 4500);
+
+    // Hands-Free VAD Mode: resume listening automatically after speaking finishes
+    if (isVadMode) {
+      setTimeout(() => {
+        if (isVadMode && !isPlayingAudio && !isRecording) {
+          startVadListening();
+        }
+      }, 400);
+    }
     return;
   }
 
@@ -455,11 +616,11 @@ function updateStatus(text, className) {
 }
 
 // ==========================================
-// 5. Sending Messages & Camera Capture
+// 5. Sending Messages & Camera / Screen Capture
 // ==========================================
 async function sendMessage() {
   const text = chatInput.value.trim();
-  if (!text && !cameraStream) return;
+  if (!text && !cameraStream && !screenStream) return;
   if (!isWsConnected) {
     alert("Koneksi ke server terputus. Silakan tunggu sebentar.");
     return;
@@ -467,13 +628,20 @@ async function sendMessage() {
 
   let capturedImage = null;
 
-  // If camera is active, capture frame
-  if (cameraStream) {
+  // Screen Vision has priority if sharing screen, otherwise webcam
+  if (screenStream) {
+    capturedImage = captureScreenFrame();
+  } else if (cameraStream) {
     capturedImage = captureCameraFrame();
   }
 
   // Clear input
   chatInput.value = "";
+
+  // Stop recording if speaking
+  if (recognition && isRecording) {
+    recognition.stop();
+  }
 
   // Send to server
   ws.send(
@@ -530,7 +698,52 @@ function stopCamera() {
 }
 
 // ==========================================
-// 7. Voice Input (Speech Recognition)
+// 6b. Screen Sharing Controls (Desktop Co-Pilot)
+// ==========================================
+async function toggleScreen() {
+  if (screenStream) {
+    stopScreen();
+  } else {
+    try {
+      screenStream = await navigator.mediaDevices.getDisplayMedia({
+        video: { cursor: "always" },
+        audio: false,
+      });
+      screenVideo.srcObject = screenStream;
+      screenBox.classList.remove("hidden");
+      if (screenToggleBtn) screenToggleBtn.classList.add("active");
+
+      // Handle user stopping screen share from browser banner
+      screenStream.getVideoTracks()[0].onended = () => {
+        stopScreen();
+      };
+    } catch (err) {
+      console.warn("Screen share cancelled or failed:", err);
+    }
+  }
+}
+
+function stopScreen() {
+  if (screenStream) {
+    screenStream.getTracks().forEach((track) => track.stop());
+    screenStream = null;
+  }
+  screenBox.classList.add("hidden");
+  if (screenToggleBtn) screenToggleBtn.classList.remove("active");
+}
+
+function captureScreenFrame() {
+  if (!screenVideo.videoWidth) return null;
+  const offscreenCanvas = document.createElement("canvas");
+  offscreenCanvas.width = screenVideo.videoWidth;
+  offscreenCanvas.height = screenVideo.videoHeight;
+  const ctx = offscreenCanvas.getContext("2d");
+  ctx.drawImage(screenVideo, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+  return offscreenCanvas.toDataURL("image/jpeg", 0.7);
+}
+
+// ==========================================
+// 7. Voice Input (Speech Recognition) & VAD
 // ==========================================
 let recognition = null;
 let isRecording = false;
@@ -539,6 +752,7 @@ function initSpeechRecognition() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
     micBtn.style.display = "none";
+    if (vadBtn) vadBtn.style.display = "none";
     console.warn("Web Speech API tidak didukung di browser ini.");
     return;
   }
@@ -567,6 +781,14 @@ function initSpeechRecognition() {
 
   recognition.onend = () => {
     stopRecording();
+    // In VAD hands-free mode, restart listening automatically if AI isn't speaking
+    if (isVadMode && !isPlayingAudio) {
+      setTimeout(() => {
+        if (isVadMode && !isPlayingAudio && !isRecording) {
+          startVadListening();
+        }
+      }, 400);
+    }
   };
 }
 
@@ -590,13 +812,45 @@ function stopRecording() {
   if (isWsConnected) updateStatus("Online", "status-online");
 }
 
+// Hands-Free Continuous Voice Mode (VAD)
+function toggleVadMode() {
+  isVadMode = !isVadMode;
+  if (isVadMode) {
+    if (vadBtn) {
+      vadBtn.classList.add("active");
+      vadBtn.title = "Hands-Free Voice: ON";
+    }
+    startVadListening();
+  } else {
+    if (vadBtn) {
+      vadBtn.classList.remove("active");
+      vadBtn.title = "Mode Bicara Otomatis Tanpa Tangan (Hands-Free VAD Mode)";
+    }
+    if (isRecording) {
+      stopRecording();
+    }
+  }
+}
+
+function startVadListening() {
+  if (!recognition || isPlayingAudio || isRecording) return;
+  try {
+    recognition.start();
+  } catch (e) {
+    // Recognition might already be starting
+  }
+}
+
 // ==========================================
 // 8. Event Listeners
 // ==========================================
 function initEventListeners() {
   cameraToggleBtn.addEventListener("click", toggleCamera);
   cameraCloseBtn.addEventListener("click", stopCamera);
+  if (screenToggleBtn) screenToggleBtn.addEventListener("click", toggleScreen);
+  if (screenCloseBtn) screenCloseBtn.addEventListener("click", stopScreen);
   micBtn.addEventListener("click", toggleRecording);
+  if (vadBtn) vadBtn.addEventListener("click", toggleVadMode);
   sendBtn.addEventListener("click", sendMessage);
 
   chatInput.addEventListener("keydown", (e) => {

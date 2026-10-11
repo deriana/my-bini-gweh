@@ -30,6 +30,15 @@
           <span class="btn-text">Kamera</span>
         </button>
 
+        <button id="screen-toggle-btn" class="icon-btn" title="Bagikan Layar (Screen Vision / Co-Pilot)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span class="btn-text">Layar</span>
+        </button>
+
         <a href="/settings" class="icon-btn settings-link" title="Buka Pengaturan Lengkap">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"></circle>
@@ -92,12 +101,22 @@
         <video id="camera-video" autoplay playsinline muted></video>
         <div class="camera-tag">Active on Chat</div>
       </div>
+
+      <!-- Draggable Screen Video Preview -->
+      <div id="screen-preview-box" class="camera-box hidden" style="bottom: 90px; right: 280px;">
+        <div class="camera-header">
+          <span>Screen Vision (Co-Pilot)</span>
+          <button id="screen-close-btn">&times;</button>
+        </div>
+        <video id="screen-video" autoplay playsinline muted></video>
+        <div class="camera-tag">Active on Chat</div>
+      </div>
     </main>
 
     <!-- Bottom Input Bar -->
     <footer id="input-container">
       <div class="input-card">
-        <button id="mic-btn" class="action-btn mic-btn" title="Bicara (Voice Input)">
+        <button id="mic-btn" class="action-btn mic-btn" title="Bicara Manual (Voice Input)">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
             <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
@@ -105,10 +124,16 @@
             <line x1="8" y1="23" x2="16" y2="23"></line>
           </svg>
         </button>
+        <button id="vad-btn" class="action-btn" title="Mode Bicara Otomatis Tanpa Tangan (Hands-Free VAD Mode)">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+        </button>
         <input 
           type="text" 
           id="chat-input" 
-          placeholder="Ketik pesan atau bicara lewat mic... (Drag model untuk menggeser, Scroll untuk zoom)" 
+          placeholder="Ketik pesan atau bicara... (Klik kepala avatar untuk headpat, pipi untuk poke!)" 
           autocomplete="off"
         />
         <button id="send-btn" class="action-btn send-btn" title="Kirim">

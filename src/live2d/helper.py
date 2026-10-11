@@ -26,6 +26,8 @@ def parse_emotion_and_clean(text: str, emotion_map: Dict[str, int]) -> Tuple[str
     clean_text = re.sub(r"\[.*?\]", "", text)
     clean_text = re.sub(r"\*.*?\*", "", clean_text)  # Remove asterisks like *smiles*
     clean_text = re.sub(r"https?://\S+", "", clean_text)
+    clean_text = re.sub(r"\s+([,.!?])", r"\1", clean_text)
+    clean_text = re.sub(r"\s+", " ", clean_text)
     clean_text = clean_text.strip()
 
     return clean_text, detected_emotion, expression_index

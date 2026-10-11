@@ -334,6 +334,12 @@ body, html {
   color: white;
 }
 
+.action-btn.active {
+  background: var(--accent);
+  color: white;
+  box-shadow: 0 0 12px rgba(124, 58, 237, 0.6);
+}
+
 .mic-btn.recording {
   background: var(--danger);
   animation: pulse 1.2s infinite;

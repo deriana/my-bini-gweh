@@ -24,6 +24,11 @@ def test_routes():
     assert r.status_code == 200, f"GET /settings failed with {r.status_code}"
     print("  [PASS] GET /settings (Dedicated Settings Page)")
 
+    r = client.get("/overlay")
+    assert r.status_code == 200, f"GET /overlay failed with {r.status_code}"
+    assert "live2d-canvas" in r.text
+    print("  [PASS] GET /overlay (OBS Transparent Stream Overlay)")
+
     # 2. Config & Settings
     r = client.get("/api/config")
     assert r.status_code == 200 and "models" in r.json(), "GET /api/config failed"
@@ -52,6 +57,27 @@ def test_routes():
     r = client.get("/api/logs")
     assert r.status_code == 200 and "logs" in r.json(), "GET /api/logs failed"
     print(f"  [PASS] GET /api/logs (Total Logs: {len(r.json()['logs'])})")
+
+    # 6. Interactive Touch Reactions
+    for touch in ["headpat", "poke", "body"]:
+        r = client.post("/api/interact/touch", json={"touch_type": touch, "model": "mao_pro"})
+        assert r.status_code == 200, f"POST /api/interact/touch failed for {touch}"
+        t_data = r.json()
+        assert "text" in t_data and "emotion" in t_data
+        print(f"  [PASS] POST /api/interact/touch ({touch}) -> \"{t_data['text']}\" [{t_data['emotion']}]")
+
+    # 7. Autonomous Proactive Greetings & Reminders
+    r = client.get("/api/proactive/greeting?model=mao_pro")
+    assert r.status_code == 200, "GET /api/proactive/greeting failed"
+    g_data = r.json()
+    assert "text" in g_data and "period" in g_data
+    print(f"  [PASS] GET /api/proactive/greeting ({g_data['period']}) -> \"{g_data['text']}\" [{g_data['emotion']}]")
+
+    r = client.get("/api/proactive/reminder?model=mao_pro")
+    assert r.status_code == 200, "GET /api/proactive/reminder failed"
+    rem_data = r.json()
+    assert "text" in rem_data and "emotion" in rem_data
+    print(f"  [PASS] GET /api/proactive/reminder -> \"{rem_data['text']}\" [{rem_data['emotion']}]")
 
 
 async def test_ollama_llm():

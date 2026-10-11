@@ -14,3 +14,9 @@ async def index_page():
 async def settings_page():
     """Serves the dedicated full-system settings page."""
     return FileResponse("static/settings.html")
+
+
+@router.get("/overlay")
+async def overlay_page():
+    """Serves the minimalist transparent streaming overlay for OBS Studio Browser Source."""
+    return FileResponse("static/overlay.html")

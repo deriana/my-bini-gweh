@@ -16,7 +16,7 @@ class Database:
     """
 
     def __init__(self, db_path: Path = DB_PATH):
-        self.db_path = db_path
+        self.db_path = Path(db_path)
         os.makedirs(self.db_path.parent, exist_ok=True)
         self._init_db()
 

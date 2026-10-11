@@ -8,6 +8,8 @@ from .memory_routes import router as memory_router
 from .media_routes import router as media_router
 from .logs_routes import router as logs_router
 from .websocket import router as ws_router
+from .interact_routes import router as interact_router
+from .proactive_routes import router as proactive_router
 
 # Central aggregator router
 api_router = APIRouter()
@@ -20,5 +22,7 @@ api_router.include_router(memory_router)
 api_router.include_router(media_router)
 api_router.include_router(logs_router)
 api_router.include_router(ws_router)
+api_router.include_router(interact_router)
+api_router.include_router(proactive_router)
 
 __all__ = ["api_router"]

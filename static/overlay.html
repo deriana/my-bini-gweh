@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VTuber OBS Overlay</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body, html {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: transparent !important;
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    }
+    #stage {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+    #live2d-canvas {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+    #speech-bubble {
+      position: absolute;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-width: 85%;
+      min-width: 280px;
+      background: rgba(15, 15, 25, 0.85);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(139, 92, 246, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(139, 92, 246, 0.2);
+      border-radius: 14px;
+      padding: 12px 20px;
+      color: #fff;
+      font-size: 1.05rem;
+      line-height: 1.4;
+      text-align: center;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      z-index: 100;
+    }
+    #speech-bubble.hidden {
+      opacity: 0;
+      transform: translateX(-50%) translateY(16px);
+      pointer-events: none;
+    }
+    .bubble-speaker {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #a78bfa;
+      margin-bottom: 4px;
+    }
+  </style>
+
+  <!-- Live2D & Pixi.js local dependencies -->
+  <script src="/static/libs/live2dcubismcore.min.js"></script>
+  <script src="/static/libs/live2d.min.js"></script>
+  <script src="/static/libs/pixi.min.js"></script>
+  <script src="/static/libs/cubism4.min.js"></script>
+</head>
+<body>
+  <div id="stage">
+    <canvas id="live2d-canvas"></canvas>
+    <div id="speech-bubble" class="hidden">
+      <div id="bubble-speaker" class="bubble-speaker">Ryza</div>
+      <div id="bubble-text" class="bubble-text">...</div>
+    </div>
+  </div>
+
+  <script>
+    let pixiApp = null;
+    let currentModel = null;
+    let ws = null;
+    let bubbleTimeout = null;
+    const audioQueue = [];
+    let isPlayingAudio = false;
+    let mouthInterval = null;
+
+    async function initOverlay() {
+      const canvas = document.getElementById("live2d-canvas");
+      pixiApp = new PIXI.Application({
+        view: canvas,
+        autoStart: true,
+        resizeTo: window,
+        backgroundAlpha: 0,
+      });
+
+      window.addEventListener("resize", () => {
+        if (currentModel) {
+          currentModel.x = pixiApp.renderer.width / 2;
+          currentModel.y = pixiApp.renderer.height * 0.55;
+        }
+      });
+
+      try {
+        const res = await fetch("/api/config");
+        const cfg = await res.json();
+        const modelKey = cfg.default_model || "mao_pro";
+        const modelInfo = cfg.models[modelKey];
+
+        currentModel = await PIXI.live2d.Live2DModel.from(modelInfo.path, { autoInteract: true });
+        pixiApp.stage.addChild(currentModel);
+
+        currentModel.scale.set(modelInfo.scale || 0.35);
+        currentModel.anchor.set(0.5, 0.5);
+        currentModel.x = pixiApp.renderer.width / 2;
+        currentModel.y = pixiApp.renderer.height * 0.55;
+
+        // Auto head/eye mouse tracking
+        pixiApp.stage.interactive = true;
+        pixiApp.stage.on("pointermove", (e) => {
+          if (currentModel && typeof currentModel.focus === "function") {
+            currentModel.focus(e.data.global.x, e.data.global.y);
+          }
+        });
+
+        connectWS();
+      } catch (err) {
+        console.error("Overlay load error:", err);
+      }
+    }
+
+    function connectWS() {
+      const proto = window.location.protocol === "https:" ? "wss:" : "ws:";
+      ws = new WebSocket(`${proto}//${window.location.host}/ws`);
+
+      ws.onmessage = (e) => {
+        const data = JSON.parse(e.data);
+        if (data.type === "audio") {
+          if (data.clean_text) showBubble(data.clean_text);
+          if (data.expression_index !== null && currentModel) {
+            try { currentModel.expression(data.expression_index); } catch(ex){}
+          }
+          if (data.audio) enqueueAudio(data.audio, data.volumes || []);
+        }
+      };
+
+      ws.onclose = () => setTimeout(connectWS, 3000);
+    }
+
+    function showBubble(text) {
+      const bubble = document.getElementById("speech-bubble");
+      const bText = document.getElementById("bubble-text");
+      bText.textContent = text;
+      bubble.classList.remove("hidden");
+
+      if (bubbleTimeout) clearTimeout(bubbleTimeout);
+      bubbleTimeout = setTimeout(() => bubble.classList.add("hidden"), 6000);
+    }
+
+    function enqueueAudio(audioB64, volumes) {
+      audioQueue.push({ audioB64, volumes });
+      if (!isPlayingAudio) playNextAudio();
+    }
+
+    function playNextAudio() {
+      if (audioQueue.length === 0) {
+        isPlayingAudio = false;
+        return;
+      }
+      isPlayingAudio = true;
+      const { audioB64, volumes } = audioQueue.shift();
+      const audio = new Audio("data:audio/mp3;base64," + audioB64);
+
+      audio.onplay = () => syncMouth(volumes);
+      audio.onended = () => {
+        stopMouth();
+        playNextAudio();
+      };
+      audio.onerror = () => {
+        stopMouth();
+        playNextAudio();
+      };
+      audio.play().catch(() => playNextAudio());
+    }
+
+    function syncMouth(volumes) {
+      stopMouth();
+      let index = 0;
+      mouthInterval = setInterval(() => {
+        if (!currentModel || !currentModel.internalModel) return;
+        if (index >= volumes.length) {
+          stopMouth();
+          return;
+        }
+        const vol = volumes[index];
+        try {
+          if (currentModel.internalModel.coreModel) {
+            currentModel.internalModel.coreModel.setParameterValueById("ParamMouthOpenY", vol);
+          }
+        } catch(e){}
+        index++;
+      }, 20);
+    }
+
+    function stopMouth() {
+      if (mouthInterval) clearInterval(mouthInterval);
+      mouthInterval = null;
+      if (currentModel && currentModel.internalModel && currentModel.internalModel.coreModel) {
+        try {
+          currentModel.internalModel.coreModel.setParameterValueById("ParamMouthOpenY", 0);
+        } catch(e){}
+      }
+    }
+
+    window.addEventListener("DOMContentLoaded", initOverlay);
+  </script>
+</body>
+</html>
