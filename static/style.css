@@ -329,6 +329,69 @@ body, html {
   background: var(--accent-hover);
 }
 
+.action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.settings-link {
+  text-decoration: none;
+}
+
+/* Floating Stage Controls (Zoom & Reset) */
+#stage-controls {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 6;
+}
+
+.tool-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(22, 22, 34, 0.75);
+  backdrop-filter: blur(8px);
+  border: 1px solid var(--panel-border);
+  color: var(--text-main);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+}
+
+.tool-btn:hover {
+  background: var(--accent);
+  color: #fff;
+  transform: scale(1.05);
+}
+
+/* Background Presets */
+.bg-gradient-dark {
+  background: radial-gradient(circle at 50% 20%, #1e1e2f 0%, #0d0d15 100%) !important;
+}
+
+.bg-gradient-cyberpunk {
+  background: linear-gradient(135deg, #180b2b 0%, #081b2e 100%) !important;
+}
+
+.bg-solid-dark {
+  background: #111118 !important;
+}
+
+.bg-obs-greenscreen {
+  background: #00ff00 !important;
+}
+
+.bg-obs-transparent {
+  background: transparent !important;
+}
+
 @keyframes pulse {
   0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
   70% { transform: scale(1.08); box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }

@@ -20,3 +20,10 @@ def load_config() -> Dict[str, Any]:
 def get_mcp_config_path() -> str:
     """Returns the absolute path to mcp_servers.json."""
     return str(MCP_CONFIG_FILE)
+
+
+def save_config(new_config: Dict[str, Any]) -> None:
+    """Saves updated configuration to config.json."""
+    with open(CONFIG_FILE, "w", encoding="utf-8") as f:
+        json.dump(new_config, f, indent=2, ensure_ascii=False)
+

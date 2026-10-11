@@ -1,6 +1,6 @@
 /**
  * Personal AI VTuber - Frontend Application
- * Handles Pixi.js Live2D rendering, Audio Queue Lip-Sync, Mic STT, and Webcam Vision.
+ * Handles Pixi.js Live2D rendering, interactive Zoom & Pan, Audio Lip-Sync, Mic STT, and Webcam Vision.
  */
 
 // Global State
@@ -10,6 +10,13 @@ let currentModelKey = null;
 let appConfig = null;
 let ws = null;
 let isWsConnected = false;
+
+// Transform State (Pan & Zoom)
+let currentScale = 0.3;
+let currentPosX = 0;
+let currentPosY = 0;
+let isDragging = false;
+let dragStart = { x: 0, y: 0 };
 
 // Audio Queue & Lip Sync
 const audioQueue = [];
@@ -24,30 +31,58 @@ const cameraToggleBtn = document.getElementById("camera-toggle-btn");
 const cameraCloseBtn = document.getElementById("camera-close-btn");
 
 // UI Elements
+const canvas = document.getElementById("live2d-canvas");
 const statusPill = document.getElementById("status-pill");
-const modelSelect = document.getElementById("model-select");
-const voiceSelect = document.getElementById("voice-select");
 const speechBubble = document.getElementById("speech-bubble");
 const bubbleText = document.getElementById("bubble-text");
 const chatInput = document.getElementById("chat-input");
 const sendBtn = document.getElementById("send-btn");
 const micBtn = document.getElementById("mic-btn");
+const zoomInBtn = document.getElementById("zoom-in-btn");
+const zoomOutBtn = document.getElementById("zoom-out-btn");
+const resetPosBtn = document.getElementById("reset-pos-btn");
 let bubbleTimeout = null;
 
 // ==========================================
 // 1. Initialization
 // ==========================================
 async function init() {
+  applyStoredBackground();
   initPixi();
   await loadServerConfig();
   connectWebSocket();
   initEventListeners();
+  initTransformControls();
   initSpeechRecognition();
+}
+
+// Apply stored custom wallpaper or preset
+function applyStoredBackground() {
+  const bgType = localStorage.getItem("vtuber_bg") || "gradient-dark";
+  const bgUrl = localStorage.getItem("vtuber_bg_url");
+
+  document.body.className = "";
+  document.body.style.backgroundImage = "";
+
+  if (bgType === "custom-url" && bgUrl) {
+    document.body.style.backgroundImage = `url('${bgUrl}')`;
+    document.body.style.backgroundSize = "cover";
+    document.body.style.backgroundPosition = "center";
+  } else if (bgType === "gradient-cyberpunk") {
+    document.body.classList.add("bg-gradient-cyberpunk");
+  } else if (bgType === "solid-dark") {
+    document.body.classList.add("bg-solid-dark");
+  } else if (bgType === "obs-greenscreen") {
+    document.body.classList.add("bg-obs-greenscreen");
+  } else if (bgType === "obs-transparent") {
+    document.body.classList.add("bg-obs-transparent");
+  } else {
+    document.body.classList.add("bg-gradient-dark");
+  }
 }
 
 // Initialize Pixi.js
 function initPixi() {
-  const canvas = document.getElementById("live2d-canvas");
   pixiApp = new PIXI.Application({
     view: canvas,
     transparent: true,
@@ -58,39 +93,18 @@ function initPixi() {
 
   window.addEventListener("resize", () => {
     if (currentModel && appConfig) {
-      positionModel(appConfig.models[currentModelKey]);
+      applyModelPosition();
     }
   });
 }
 
-// Fetch server config and populate dropdowns
+// Fetch server config and load default model
 async function loadServerConfig() {
   try {
     const res = await fetch("/api/config");
     appConfig = await res.json();
-
-    // Populate Models
-    modelSelect.innerHTML = "";
-    for (const [key, model] of Object.entries(appConfig.models)) {
-      const opt = document.createElement("option");
-      opt.value = key;
-      opt.textContent = model.name;
-      if (key === appConfig.default_model) opt.selected = true;
-      modelSelect.appendChild(opt);
-    }
-
-    // Populate Voices
-    voiceSelect.innerHTML = "";
-    for (const voice of appConfig.voices) {
-      const opt = document.createElement("option");
-      opt.value = voice.id;
-      opt.textContent = voice.name;
-      if (voice.id === appConfig.default_voice) opt.selected = true;
-      voiceSelect.appendChild(opt);
-    }
-
-    // Load initial model
-    await switchModel(appConfig.default_model);
+    const modelToLoad = appConfig.default_model || "mao_pro";
+    await switchModel(modelToLoad);
   } catch (err) {
     console.error("Failed to load server config:", err);
     updateStatus("Config Error", "status-offline");
@@ -98,7 +112,7 @@ async function loadServerConfig() {
 }
 
 // ==========================================
-// 2. Live2D Model Management
+// 2. Live2D Model Management & Positioning
 // ==========================================
 async function switchModel(modelKey) {
   if (!appConfig || !appConfig.models[modelKey]) return;
@@ -120,10 +134,18 @@ async function switchModel(modelKey) {
     });
 
     pixiApp.stage.addChild(currentModel);
-    positionModel(modelCfg);
 
-    // Make interactive (drag/track mouse)
+    // Load saved transform from localStorage or defaults
+    const saved = getSavedTransform(modelKey);
+    currentScale = saved.scale || modelCfg.scale || 0.3;
+    currentPosX = saved.x !== undefined ? saved.x : (pixiApp.renderer.width / 2 + (modelCfg.x || 0) * pixiApp.renderer.width);
+    currentPosY = saved.y !== undefined ? saved.y : (pixiApp.renderer.height * 0.5 + (modelCfg.y || 0) * pixiApp.renderer.height);
+
+    applyModelPosition();
+
+    // Enable drag and pointer interactions
     currentModel.interactive = true;
+    enableModelDragging();
 
     updateStatus("Online", "status-online");
   } catch (err) {
@@ -132,15 +154,97 @@ async function switchModel(modelKey) {
   }
 }
 
-function positionModel(modelCfg) {
-  if (!currentModel || !modelCfg) return;
-  const renderer = pixiApp.renderer;
-
-  currentModel.scale.set(modelCfg.scale || 0.3);
+function applyModelPosition() {
+  if (!currentModel) return;
+  currentModel.scale.set(currentScale);
   currentModel.anchor.set(0.5, 0.5);
+  currentModel.x = currentPosX;
+  currentModel.y = currentPosY;
+}
 
-  currentModel.x = renderer.width / 2 + (modelCfg.x || 0) * renderer.width;
-  currentModel.y = renderer.height * 0.5 + (modelCfg.y || 0) * renderer.height;
+// LocalStorage Transform Helper
+function getSavedTransform(modelKey) {
+  try {
+    const raw = localStorage.getItem(`vtuber_transform_${modelKey}`);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveTransform() {
+  if (!currentModelKey) return;
+  const data = { scale: currentScale, x: currentPosX, y: currentPosY };
+  localStorage.setItem(`vtuber_transform_${currentModelKey}`, JSON.stringify(data));
+}
+
+// Drag & Drop Model Pan
+function enableModelDragging() {
+  if (!currentModel) return;
+
+  currentModel.on("pointerdown", (event) => {
+    isDragging = true;
+    dragStart.x = event.data.global.x - currentModel.x;
+    dragStart.y = event.data.global.y - currentModel.y;
+  });
+
+  pixiApp.stage.interactive = true;
+  pixiApp.stage.on("pointermove", (event) => {
+    if (isDragging && currentModel) {
+      currentPosX = event.data.global.x - dragStart.x;
+      currentPosY = event.data.global.y - dragStart.y;
+      currentModel.x = currentPosX;
+      currentModel.y = currentPosY;
+    }
+  });
+
+  pixiApp.stage.on("pointerup", () => {
+    if (isDragging) {
+      isDragging = false;
+      saveTransform();
+    }
+  });
+
+  pixiApp.stage.on("pointerupoutside", () => {
+    if (isDragging) {
+      isDragging = false;
+      saveTransform();
+    }
+  });
+}
+
+// Zoom & Transform Controls
+function initTransformControls() {
+  // Mouse Wheel Zoom
+  canvas.addEventListener("wheel", (e) => {
+    e.preventDefault();
+    const zoomFactor = e.deltaY < 0 ? 1.08 : 0.92;
+    adjustZoom(zoomFactor);
+  }, { passive: false });
+
+  // Zoom In Button
+  zoomInBtn.addEventListener("click", () => adjustZoom(1.15));
+
+  // Zoom Out Button
+  zoomOutBtn.addEventListener("click", () => adjustZoom(0.85));
+
+  // Reset Position Button
+  resetPosBtn.addEventListener("click", () => {
+    if (!currentModel || !appConfig || !appConfig.models[currentModelKey]) return;
+    const modelCfg = appConfig.models[currentModelKey];
+    currentScale = modelCfg.scale || 0.3;
+    currentPosX = pixiApp.renderer.width / 2 + (modelCfg.x || 0) * pixiApp.renderer.width;
+    currentPosY = pixiApp.renderer.height * 0.5 + (modelCfg.y || 0) * pixiApp.renderer.height;
+    applyModelPosition();
+    saveTransform();
+  });
+}
+
+function adjustZoom(factor) {
+  if (!currentModel) return;
+  currentScale = Math.min(Math.max(0.08, currentScale * factor), 3.0);
+  currentModel.scale.set(currentScale);
+  saveTransform();
 }
 
 // Set model expression by index
@@ -179,11 +283,10 @@ function queueAudioPayload(payload) {
 function playNextAudio() {
   if (audioQueue.length === 0) {
     isPlayingAudio = false;
-    // Set timer to hide speech bubble
     if (bubbleTimeout) clearTimeout(bubbleTimeout);
     bubbleTimeout = setTimeout(() => {
       speechBubble.classList.add("hidden");
-    }, 4000);
+    }, 4500);
     return;
   }
 
@@ -300,7 +403,7 @@ async function sendMessage() {
   const text = chatInput.value.trim();
   if (!text && !cameraStream) return;
   if (!isWsConnected) {
-    alert("Koneksi ke server terputus. Silakan tunggu.");
+    alert("Koneksi ke server terputus. Silakan tunggu sebentar.");
     return;
   }
 
@@ -320,8 +423,9 @@ async function sendMessage() {
       type: "chat",
       text: text,
       image: capturedImage,
-      model: modelSelect.value,
-      voice: voiceSelect.value,
+      model: currentModelKey,
+      voice: appConfig ? appConfig.default_voice : "id-ID-GadisNeural",
+      session_id: "default",
     })
   );
 
@@ -330,12 +434,12 @@ async function sendMessage() {
 
 function captureCameraFrame() {
   if (!cameraVideo.videoWidth) return null;
-  const canvas = document.createElement("canvas");
-  canvas.width = cameraVideo.videoWidth;
-  canvas.height = cameraVideo.videoHeight;
-  const ctx = canvas.getContext("2d");
-  ctx.drawImage(cameraVideo, 0, 0, canvas.width, canvas.height);
-  return canvas.toDataURL("image/jpeg", 0.7);
+  const offscreenCanvas = document.createElement("canvas");
+  offscreenCanvas.width = cameraVideo.videoWidth;
+  offscreenCanvas.height = cameraVideo.videoHeight;
+  const ctx = offscreenCanvas.getContext("2d");
+  ctx.drawImage(cameraVideo, 0, 0, offscreenCanvas.width, offscreenCanvas.height);
+  return offscreenCanvas.toDataURL("image/jpeg", 0.7);
 }
 
 // ==========================================
@@ -377,12 +481,12 @@ function initSpeechRecognition() {
   const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
   if (!SpeechRec) {
     micBtn.style.display = "none";
-    console.warn("Web Speech API not supported in this browser.");
+    console.warn("Web Speech API tidak didukung di browser ini.");
     return;
   }
 
   recognition = new SpeechRec();
-  recognition.lang = "id-ID"; // Default Indonesian
+  recognition.lang = "id-ID";
   recognition.continuous = false;
   recognition.interimResults = false;
 
@@ -417,7 +521,7 @@ function toggleRecording() {
     try {
       recognition.start();
     } catch (e) {
-      console.warn("Recognition start failed:", e);
+      console.warn("Recognition start error:", e);
     }
   }
 }
@@ -432,7 +536,6 @@ function stopRecording() {
 // 8. Event Listeners
 // ==========================================
 function initEventListeners() {
-  modelSelect.addEventListener("change", (e) => switchModel(e.target.value));
   cameraToggleBtn.addEventListener("click", toggleCamera);
   cameraCloseBtn.addEventListener("click", stopCamera);
   micBtn.addEventListener("click", toggleRecording);
@@ -445,5 +548,5 @@ function initEventListeners() {
   });
 }
 
-// Start application on DOM ready
+// Start application
 document.addEventListener("DOMContentLoaded", init);

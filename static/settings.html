@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Settings - Personal AI VTuber</title>
+  <link rel="stylesheet" href="/static/style.css">
+  <style>
+    /* Dedicated Settings Layout */
+    body {
+      overflow-y: auto;
+      user-select: text;
+    }
+    .settings-container {
+      max-width: 1050px;
+      margin: 30px auto;
+      padding: 0 20px 60px 20px;
+    }
+    .settings-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .settings-nav {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      background: rgba(35, 35, 50, 0.9);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      color: var(--text-main);
+      text-decoration: none;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .back-btn:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+    .save-top-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 20px;
+      background: var(--accent);
+      border: none;
+      border-radius: 8px;
+      color: #fff;
+      font-size: 0.9rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .save-top-btn:hover {
+      background: var(--accent-hover);
+    }
+    .settings-layout {
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+      background: var(--panel-bg);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+    }
+    /* Sidebar Tabs */
+    .settings-sidebar {
+      background: rgba(15, 15, 25, 0.6);
+      border-right: 1px solid var(--panel-border);
+      padding: 16px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .tab-btn {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 14px;
+      background: transparent;
+      border: none;
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      font-weight: 500;
+      text-align: left;
+      cursor: pointer;
+      transition: all 0.2s;
+      width: 100%;
+    }
+    .tab-btn:hover {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text-main);
+    }
+    .tab-btn.active {
+      background: var(--accent);
+      color: #fff;
+    }
+    .tab-btn svg {
+      width: 18px;
+      height: 18px;
+      stroke-width: 2;
+    }
+    /* Tab Content Area */
+    .tab-content {
+      padding: 24px 30px;
+      min-height: 540px;
+    }
+    .tab-pane {
+      display: none;
+    }
+    .tab-pane.active {
+      display: block;
+      animation: fadeIn 0.2s ease-in-out;
+    }
+    .pane-title {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+    .pane-subtitle {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 24px;
+    }
+    .form-group {
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+    .form-group .hint {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+    .form-control {
+      width: 100%;
+      background: rgba(18, 18, 28, 0.8);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      color: var(--text-main);
+      font-size: 0.9rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .form-control:focus {
+      border-color: var(--accent);
+    }
+    textarea.form-control {
+      min-height: 110px;
+      resize: vertical;
+      font-family: inherit;
+    }
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .preset-bg-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: 12px;
+      margin-top: 10px;
+    }
+    .preset-bg-card {
+      height: 75px;
+      border-radius: 10px;
+      border: 2px solid transparent;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #fff;
+      text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+      transition: all 0.2s;
+      overflow: hidden;
+      background-size: cover;
+      background-position: center;
+    }
+    .preset-bg-card:hover {
+      transform: translateY(-2px);
+    }
+    .preset-bg-card.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 12px var(--accent);
+    }
+    /* Log console */
+    .log-console {
+      background: #09090f;
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 12px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      height: 380px;
+      overflow-y: auto;
+      color: #a0aec0;
+      white-space: pre-wrap;
+    }
+    .log-line {
+      margin-bottom: 4px;
+      line-height: 1.4;
+    }
+    .log-INFO { color: #68d391; }
+    .log-WARN { color: #f6e05e; }
+    .log-ERROR { color: #fc8181; }
+    /* Toast */
+    #toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: rgba(16, 185, 129, 0.9);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 8px;
+      font-weight: 500;
+      font-size: 0.9rem;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+      display: none;
+      z-index: 100;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(4px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+</head>
+<body>
+  <div class="settings-container">
+    <div class="settings-header">
+      <div class="settings-nav">
+        <a href="/" class="back-btn">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="15 18 9 12 15 6"></polyline>
+          </svg>
+          Kembali ke AI Companion
+        </a>
+        <h1 style="font-size: 1.4rem; margin-left: 12px;">Pengaturan Sistem</h1>
+      </div>
+      <button id="save-all-btn" class="save-top-btn">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+          <polyline points="7 3 7 8 15 8"></polyline>
+        </svg>
+        Simpan Pengaturan
+      </button>
+    </div>
+
+    <div class="settings-layout">
+      <!-- Sidebar -->
+      <aside class="settings-sidebar">
+        <button class="tab-btn active" data-tab="tab-llm">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          Model AI & API
+        </button>
+
+        <button class="tab-btn" data-tab="tab-tts">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+          </svg>
+          Suara & TTS
+        </button>
+
+        <button class="tab-btn" data-tab="tab-live2d">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <circle cx="12" cy="10" r="3"></circle>
+            <path d="M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662"></path>
+          </svg>
+          Avatar Live2D
+        </button>
+
+        <button class="tab-btn" data-tab="tab-appearance">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+            <polyline points="21 15 16 10 5 21"></polyline>
+          </svg>
+          Background & Tampilan
+        </button>
+
+        <button class="tab-btn" data-tab="tab-memory">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+          Memori & History
+        </button>
+
+        <button class="tab-btn" data-tab="tab-logs">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="4 17 10 11 4 5"></polyline>
+            <line x1="12" y1="19" x2="20" y2="19"></line>
+          </svg>
+          Log Model & Sistem
+        </button>
+      </aside>
+
+      <!-- Content -->
+      <main class="tab-content">
+        <!-- 1. LLM Settings -->
+        <div id="tab-llm" class="tab-pane active">
+          <h2 class="pane-title">Konfigurasi Model AI</h2>
+          <p class="pane-subtitle">Atur provider LLM, API Key, endpoint server, dan instruksi karakter.</p>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Provider:</label>
+              <select id="llm-provider" class="form-control">
+                <option value="ollama">Ollama (Lokal)</option>
+                <option value="groq">Groq Cloud (Super Cepat)</option>
+                <option value="openai">OpenAI (Official)</option>
+                <option value="gemini">Google Gemini (OpenAI Compat)</option>
+                <option value="deepseek">DeepSeek</option>
+                <option value="custom">Custom (OpenAI Compatible)</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Model Name:</label>
+              <input type="text" id="llm-model" class="form-control" placeholder="qwen2.5:3b atau llama-3.3-70b-versatile">
+              <div class="hint">Contoh: qwen2.5:3b, llama-3.3-70b-versatile, gpt-4o-mini</div>
+            </div>
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label>Base URL Endpoint:</label>
+              <input type="text" id="llm-base-url" class="form-control" placeholder="http://127.0.0.1:11434/v1">
+            </div>
+
+            <div class="form-group">
+              <label>API Key:</label>
+              <input type="password" id="llm-api-key" class="form-control" placeholder="ollama atau sk-...">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Temperature (Kreativitas): <span id="temp-val">0.7</span></label>
+            <input type="range" id="llm-temperature" min="0.0" max="1.5" step="0.1" value="0.7" style="width: 100%;">
+          </div>
+
+          <div class="form-group">
+            <label>System Prompt (Persona Karakter & Tag Emosi):</label>
+            <textarea id="llm-system-prompt" class="form-control"></textarea>
+            <div class="hint">Pastikan instruksi untuk menyertakan tag emosi seperti [joy], [sadness], [anger] tetap ada agar Live2D merespons.</div>
+          </div>
+        </div>
+
+        <!-- 2. TTS Settings -->
+        <div id="tab-tts" class="tab-pane">
+          <h2 class="pane-title">Suara & Text-to-Speech</h2>
+          <p class="pane-subtitle">Sesuaikan karakter suara, nada bicara, dan lakukan tes pendengaran suara.</p>
+
+          <div class="form-group">
+            <label>Suara Default:</label>
+            <select id="tts-voice" class="form-control"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Tes Suara Langsung:</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="text" id="tts-test-text" class="form-control" value="Halo! Senang sekali bisa mengobrol denganmu hari ini.">
+              <button id="tts-test-btn" class="back-btn" style="white-space: nowrap;">Dengarkan Suara</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Live2D Settings -->
+        <div id="tab-live2d" class="tab-pane">
+          <h2 class="pane-title">Avatar Live2D</h2>
+          <p class="pane-subtitle">Pilih model Live2D aktif dan sesuaikan skala proporsi tampilan.</p>
+
+          <div class="form-group">
+            <label>Karakter Aktif:</label>
+            <select id="live2d-default-model" class="form-control"></select>
+          </div>
+
+          <div class="form-group">
+            <label>Model Terpasang:</label>
+            <ul style="color: var(--text-muted); font-size: 0.9rem; line-height: 1.8; margin-left: 20px;">
+              <li><strong>Mao Pro:</strong> Model gadis anime dengan artikulasi emosi lengkap (joy, anger, blush, fear, sadness).</li>
+              <li><strong>Shiroko:</strong> Model Blue Archive Shiroko.</li>
+              <li><strong>Shizuku:</strong> Model sampel klasik Live2D Cubism.</li>
+            </ul>
+          </div>
+        </div>
+
+        <!-- 4. Appearance & Background -->
+        <div id="tab-appearance" class="tab-pane">
+          <h2 class="pane-title">Background & Tampilan</h2>
+          <p class="pane-subtitle">Atur wallpaper latar belakang panggung, atau aktifkan mode transparan untuk streaming OBS.</p>
+
+          <div class="form-group">
+            <label>Pilihan Preset Latar Belakang:</label>
+            <div class="preset-bg-grid">
+              <div class="preset-bg-card selected" data-bg="gradient-dark" style="background: radial-gradient(circle at 50% 20%, #1e1e2f 0%, #0d0d15 100%);">Dark Gradient</div>
+              <div class="preset-bg-card" data-bg="gradient-cyberpunk" style="background: linear-gradient(135deg, #180b2b 0%, #081b2e 100%);">Cyberpunk</div>
+              <div class="preset-bg-card" data-bg="solid-dark" style="background: #111118;">Minimalist Dark</div>
+              <div class="preset-bg-card" data-bg="obs-greenscreen" style="background: #00ff00; color: #000;">Green Screen</div>
+              <div class="preset-bg-card" data-bg="obs-transparent" style="background: repeating-conic-gradient(#333 0% 25%, #222 0% 50%) 50% / 16px 16px;">Transparan OBS</div>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-top: 24px;">
+            <label>Upload Wallpaper Sendiri (JPG, PNG):</label>
+            <div style="display: flex; gap: 10px;">
+              <input type="file" id="bg-file-input" accept="image/*" class="form-control" style="padding: 6px;">
+              <button id="upload-bg-btn" class="back-btn" style="white-space: nowrap;">Upload</button>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Atau Gunakan URL Gambar Eksternal:</label>
+            <input type="text" id="bg-url-input" class="form-control" placeholder="https://example.com/anime-room.jpg">
+          </div>
+        </div>
+
+        <!-- 5. Memory & History -->
+        <div id="tab-memory" class="tab-pane">
+          <h2 class="pane-title">Manajemen Memori & Riwayat Chat</h2>
+          <p class="pane-subtitle">Data percakapan disimpan secara aman di database lokal SQLite (memory.db).</p>
+
+          <div style="display: flex; gap: 12px; margin-bottom: 20px;">
+            <button id="reset-memory-btn" class="back-btn" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.4);">
+              Reset Sesi Obrolan Saat Ini
+            </button>
+            <button id="delete-all-history-btn" class="back-btn" style="color: #ef4444; border-color: rgba(239, 68, 68, 0.4);">
+              Hapus Seluruh Database Chat
+            </button>
+          </div>
+
+          <div class="form-group">
+            <label>Riwayat Pesan Tersimpan:</label>
+            <div id="chat-history-box" style="background: rgba(10, 10, 18, 0.8); border: 1px solid var(--panel-border); border-radius: 8px; padding: 14px; max-height: 280px; overflow-y: auto; font-size: 0.85rem;">
+              <div style="color: var(--text-muted);">Memuat riwayat chat...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 6. Logs -->
+        <div id="tab-logs" class="tab-pane">
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+            <div>
+              <h2 class="pane-title" style="margin-bottom: 2px;">Log Model & Sistem</h2>
+              <p class="pane-subtitle" style="margin-bottom: 0;">Pantau eksekusi LLM, tag emosi, tool MCP, dan status WebSocket secara live.</p>
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="refresh-logs-btn" class="back-btn">Refresh</button>
+              <button id="clear-logs-btn" class="back-btn">Bersihkan</button>
+            </div>
+          </div>
+
+          <div id="log-console" class="log-console"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <div id="toast">Pengaturan berhasil disimpan!</div>
+
+  <script src="/static/settings.js"></script>
+</body>
+</html>

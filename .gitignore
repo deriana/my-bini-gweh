@@ -29,4 +29,7 @@ cache/
 logs/
 *.log
 *.gguf
+data/*.db
+data/backgrounds/*
+!data/backgrounds/.gitkeep
 .DS_Store
