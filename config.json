@@ -1,0 +1,78 @@
+{
+  "server": {
+    "host": "127.0.0.1",
+    "port": 8000
+  },
+  "llm": {
+    "provider": "ollama",
+    "base_url": "http://127.0.0.1:11434/v1",
+    "api_key": "ollama",
+    "model": "qwen2.5:3b",
+    "temperature": 0.7,
+    "system_prompt": "Kamu adalah asisten AI pribadi bernama Ryza yang ramah, ekspresif, cerdas, dan menyenangkan. Kamu berbicara santai dan akrab dalam bahasa Indonesia. Selalu sertakan satu tag emosi di awal atau tengah kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bisa bereaksi sesuai perasaanmu. Contoh: '[joy] Halo! Senang sekali bisa ngobrol bareng kamu hari ini. Ada yang bisa aku bantu?' Jangan gunakan tag emosi selain yang disebutkan."
+  },
+  "tts": {
+    "default_voice": "id-ID-GadisNeural",
+    "available_voices": [
+      {"id": "id-ID-GadisNeural", "name": "Gadis (Indonesia - Ceria/Wanita)"},
+      {"id": "id-ID-ArdiNeural", "name": "Ardi (Indonesia - Tenang/Pria)"},
+      {"id": "ja-JP-NanamiNeural", "name": "Nanami (Jepang - Lucu/Anime)"},
+      {"id": "ja-JP-KeitaNeural", "name": "Keita (Jepang - Sopan/Pria)"},
+      {"id": "en-US-AvaMultilingualNeural", "name": "Ava (Multilingual - Alami)"},
+      {"id": "en-US-JennyNeural", "name": "Jenny (Inggris - Ramah)"}
+    ]
+  },
+  "live2d": {
+    "default_model": "mao_pro",
+    "models": {
+      "mao_pro": {
+        "name": "Mao Pro",
+        "path": "/live2d-models/mao_pro/runtime/mao_pro.model3.json",
+        "scale": 0.25,
+        "x": 0,
+        "y": 0.2,
+        "emotions": {
+          "neutral": 0,
+          "anger": 2,
+          "disgust": 2,
+          "fear": 1,
+          "joy": 3,
+          "smirk": 3,
+          "sadness": 1,
+          "surprise": 3,
+          "blush": 3
+        }
+      },
+      "shiroko": {
+        "name": "Shiroko",
+        "path": "/live2d-models/shiroko/shiroko.model3.json",
+        "scale": 0.35,
+        "x": 0,
+        "y": 0.1,
+        "emotions": {
+          "neutral": 0,
+          "joy": 0,
+          "anger": 0,
+          "sadness": 0,
+          "surprise": 0,
+          "blush": 0
+        }
+      },
+      "shizuku": {
+        "name": "Shizuku",
+        "path": "/live2d-models/shizuku/runtime/shizuku.model3.json",
+        "scale": 0.45,
+        "x": 0,
+        "y": 0.2,
+        "emotions": {
+          "neutral": 0,
+          "joy": 1,
+          "sadness": 2,
+          "anger": 3,
+          "surprise": 1,
+          "blush": 1
+        }
+      }
+    }
+  }
+}
