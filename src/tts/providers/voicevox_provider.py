@@ -26,7 +26,9 @@ class VoicevoxTTSProvider(BaseTTSProvider):
         super().__init__("voicevox", "VOICEVOX Engine", config, cache_dir)
 
     def _get_base_url(self) -> str:
-        return self.config.get("base_url", "http://127.0.0.1:50021").rstrip("/")
+        from src.core.network import resolve_service_url
+        raw_url = self.config.get("base_url", "http://127.0.0.1:50021").rstrip("/")
+        return resolve_service_url(raw_url, probe_path="version")
 
     async def is_available(self) -> bool:
         base_url = self._get_base_url()

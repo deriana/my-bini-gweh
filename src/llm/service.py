@@ -27,9 +27,11 @@ class LLMService:
         self._init_client()
 
     def _init_client(self):
+        from src.core.network import resolve_service_url
         llm_cfg = self.config.get("llm", {})
         self.provider = llm_cfg.get("provider", "ollama")
-        self.base_url = os.getenv("OPENAI_BASE_URL", llm_cfg.get("base_url", "http://127.0.0.1:11434/v1"))
+        raw_url = os.getenv("OPENAI_BASE_URL", llm_cfg.get("base_url", "http://127.0.0.1:11434/v1"))
+        self.base_url = resolve_service_url(raw_url, probe_path="models")
         self.api_key = os.getenv("OPENAI_API_KEY", llm_cfg.get("api_key", "ollama"))
         self.model = os.getenv("LLM_MODEL", llm_cfg.get("model", "qwen2.5:3b"))
         self.temperature = float(llm_cfg.get("temperature", 0.7))

@@ -83,14 +83,16 @@ personal-ai-vtuber/
 │   ├── memory.db               # SQLite conversation history
 │   └── backgrounds/            # Anime room wallpapers
 ├── src/                        # Modular backend architecture
-│   ├── core/                   # Config, DB, Logging, Persona Engine
-│   ├── tts/                    # Multi-provider dynamic TTS architecture
+│   ├── api/                    # Modular FastAPI routers (pages, config, persona, tts, memory, ws)
+│   ├── core/                   # Config, Service container, Network auto-gateway, DB, Persona
+│   ├── tts/                    # Multi-provider dynamic TTS architecture (Edge, Kokoro, VOICEVOX)
 │   │   ├── base.py             # BaseTTSProvider abstract class
 │   │   ├── manager.py          # Central TTSManager & lip-sync orchestrator
 │   │   └── providers/          # Edge, Kokoro, VOICEVOX, Custom HTTP providers
 │   ├── live2d/                 # Emotion parser & RMS volume analyzer
 │   ├── mcp/                    # MCP client & tool caller
 │   └── llm/                    # Streaming LLM service & conversation coordinator
+├── tests/                      # Automated test suite (Ollama, TTS engines, WebSocket, routes)
 ├── live2d-models/              # Live2D Cubism models (mao_pro, shiroko, shizuku)
 └── static/                     # Pure SVG glassmorphic frontend UI
     ├── index.html              # Main interactive stage
