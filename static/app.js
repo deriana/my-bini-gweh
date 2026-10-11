@@ -112,6 +112,18 @@ async function loadServerConfig() {
     if (appConfig.persona && appConfig.persona.current_mood) {
       updateMoodBadge(appConfig.persona.current_mood);
     }
+    if (appConfig.active_tts_provider) {
+      const ttsPill = document.getElementById("tts-pill");
+      if (ttsPill) {
+        const names = {
+          edge: "Edge-TTS",
+          kokoro: "Kokoro-82M",
+          voicevox: "VOICEVOX",
+          custom_http: "Custom HTTP"
+        };
+        ttsPill.textContent = `TTS: ${names[appConfig.active_tts_provider] || appConfig.active_tts_provider}`;
+      }
+    }
     await switchModel(modelToLoad);
   } catch (err) {
     console.error("Failed to load server config:", err);

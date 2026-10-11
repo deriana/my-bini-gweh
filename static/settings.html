@@ -246,6 +246,62 @@
       color: var(--text-muted);
       line-height: 1.3;
     }
+    /* TTS Provider Cards */
+    .provider-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .provider-card {
+      background: rgba(30, 30, 45, 0.7);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 14px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .provider-card:hover {
+      border-color: var(--accent);
+      transform: translateY(-2px);
+    }
+    .provider-card.selected {
+      background: rgba(139, 92, 246, 0.2);
+      border-color: var(--accent);
+      box-shadow: 0 0 12px rgba(139, 92, 246, 0.4);
+    }
+    .provider-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+    .provider-card-title {
+      font-weight: 600;
+      font-size: 0.92rem;
+      color: #fff;
+    }
+    .status-badge {
+      font-size: 0.68rem;
+      padding: 2px 7px;
+      border-radius: 12px;
+      font-weight: 600;
+    }
+    .status-badge.available {
+      background: rgba(34, 197, 94, 0.2);
+      color: #4ade80;
+      border: 1px solid rgba(34, 197, 94, 0.4);
+    }
+    .status-badge.offline {
+      background: rgba(234, 179, 8, 0.2);
+      color: #facc15;
+      border: 1px solid rgba(234, 179, 8, 0.4);
+    }
+    .provider-card-desc {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      line-height: 1.35;
+    }
     /* Log console */
     .log-console {
       background: #09090f;
@@ -497,19 +553,182 @@
 
         <!-- 2. TTS Settings -->
         <div id="tab-tts" class="tab-pane">
-          <h2 class="pane-title">Suara & Text-to-Speech</h2>
-          <p class="pane-subtitle">Sesuaikan karakter suara, nada bicara, dan lakukan tes pendengaran suara.</p>
+          <h2 class="pane-title">Suara & Dynamic Text-to-Speech</h2>
+          <p class="pane-subtitle">Pilih engine TTS (Edge-TTS, Kokoro Neural, VOICEVOX, atau Custom HTTP) dan sesuaikan pengaturannya.</p>
 
+          <!-- TTS Engine Selector Cards -->
           <div class="form-group">
-            <label>Suara Default:</label>
-            <select id="tts-voice" class="form-control"></select>
+            <label>1. Pilih TTS Engine Aktif:</label>
+            <div id="tts-provider-grid" class="provider-grid">
+              <!-- Edge-TTS Card -->
+              <div class="provider-card selected" data-provider="edge">
+                <div class="provider-card-header">
+                  <span class="provider-card-title">Microsoft Edge-TTS</span>
+                  <span class="status-badge available" id="badge-edge">Tersedia</span>
+                </div>
+                <div class="provider-card-desc">Gratis, ringan, kualitas jernih Indonesia & Multilingual. Tanpa setup server tambahan.</div>
+              </div>
+
+              <!-- Kokoro Card -->
+              <div class="provider-card" data-provider="kokoro">
+                <div class="provider-card-header">
+                  <span class="provider-card-title">Kokoro-82M Neural</span>
+                  <span class="status-badge available" id="badge-kokoro">Lokal Ready</span>
+                </div>
+                <div class="provider-card-desc">Model neural lokal 82M. Suara anime Jepang & Inggris sangat natural dan ekspresif.</div>
+              </div>
+
+              <!-- VOICEVOX Card -->
+              <div class="provider-card" data-provider="voicevox">
+                <div class="provider-card-header">
+                  <span class="provider-card-title">VOICEVOX Engine</span>
+                  <span class="status-badge offline" id="badge-voicevox">Cek Port 50021</span>
+                </div>
+                <div class="provider-card-desc">Karakter anime ikonik Jepang (Zundamon, Metan, Kasukabe) via REST API port 50021.</div>
+              </div>
+
+              <!-- Custom HTTP Card -->
+              <div class="provider-card" data-provider="custom_http">
+                <div class="provider-card-header">
+                  <span class="provider-card-title">Custom HTTP / OpenAI</span>
+                  <span class="status-badge available" id="badge-custom_http">Custom API</span>
+                </div>
+                <div class="provider-card-desc">Hubungkan ke endpoint OpenAI TTS (/v1/audio/speech), ElevenLabs, atau microservice TTS sendiri.</div>
+              </div>
+            </div>
           </div>
 
-          <div class="form-group">
-            <label>Tes Suara Langsung:</label>
-            <div style="display: flex; gap: 10px;">
-              <input type="text" id="tts-test-text" class="form-control" value="Halo! Senang sekali bisa mengobrol denganmu hari ini.">
-              <button id="tts-test-btn" class="back-btn" style="white-space: nowrap;">Dengarkan Suara</button>
+          <!-- Dynamic Config Panel for Selected Provider -->
+          <div style="background: rgba(20, 20, 32, 0.6); padding: 18px; border-radius: 12px; border: 1px solid var(--panel-border); margin-bottom: 20px;">
+            <h3 style="font-size: 1rem; margin-bottom: 14px; color: var(--accent);" id="provider-config-title">Pengaturan Engine: Microsoft Edge-TTS</h3>
+
+            <!-- Panel: Edge-TTS -->
+            <div id="panel-edge" class="provider-panel">
+              <div class="form-group">
+                <label>Pilihan Karakter Suara Edge:</label>
+                <select id="edge-voice-select" class="form-control"></select>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Kecepatan Bicara (Rate):</label>
+                  <input type="text" id="edge-rate-input" class="form-control" value="+5%" placeholder="+5% atau -10%">
+                  <div class="hint">Format Edge-TTS: misal +5%, +10%, -5%</div>
+                </div>
+                <div class="form-group">
+                  <label>Tinggi Nada (Pitch):</label>
+                  <input type="text" id="edge-pitch-input" class="form-control" value="+0Hz" placeholder="+0Hz atau +10Hz">
+                  <div class="hint">Format Edge-TTS: misal +0Hz, +10Hz, -8Hz</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel: Kokoro -->
+            <div id="panel-kokoro" class="provider-panel" style="display: none;">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Pilihan Suara Kokoro:</label>
+                  <select id="kokoro-voice-select" class="form-control">
+                    <option value="jf_alpha">jf_alpha (Jepang Anime - Tsundere/Ekspresif)</option>
+                    <option value="jf_tebukuro">jf_tebukuro (Jepang Anime - Lembut)</option>
+                    <option value="jf_gongitsune">jf_gongitsune (Jepang Anime - Ceria)</option>
+                    <option value="jf_nezumi">jf_nezumi (Jepang Anime - Imut)</option>
+                    <option value="af_heart">af_heart (Inggris - Alami & Jernih)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label>Bahasa Kokoro (Lang Code):</label>
+                  <select id="kokoro-lang-select" class="form-control">
+                    <option value="j">Jepang ('j')</option>
+                    <option value="a">Inggris Amerika ('a')</option>
+                  </select>
+                </div>
+              </div>
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Kecepatan Bicara (Speed): <span id="kokoro-speed-val">1.0x</span></label>
+                  <input type="range" id="kokoro-speed-slider" min="0.5" max="2.0" step="0.05" value="1.0" style="width: 100%;">
+                </div>
+                <div class="form-group">
+                  <label>Path Python Binary Kokoro:</label>
+                  <input type="text" id="kokoro-python-path" class="form-control" value="/home/hideri/coding/kokoro-arch/.venv/bin/python3">
+                  <div class="hint">Virtual environment WSL yang terpasang modul kokoro</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Panel: VOICEVOX -->
+            <div id="panel-voicevox" class="provider-panel" style="display: none;">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>VOICEVOX Engine Base URL:</label>
+                  <div style="display: flex; gap: 8px;">
+                    <input type="text" id="voicevox-base-url" class="form-control" value="http://127.0.0.1:50021">
+                    <button id="voicevox-refresh-btn" class="back-btn" style="white-space: nowrap; font-size: 0.8rem;">Cek Live</button>
+                  </div>
+                  <div class="hint">Default port engine VOICEVOX adalah 50021</div>
+                </div>
+                <div class="form-group">
+                  <label>Pilihan Speaker / Karakter:</label>
+                  <select id="voicevox-speaker-select" class="form-control"></select>
+                </div>
+              </div>
+              <div class="form-group">
+                <label>Kecepatan Bicara (Speed Scale): <span id="voicevox-speed-val">1.0x</span></label>
+                <input type="range" id="voicevox-speed-slider" min="0.5" max="2.0" step="0.05" value="1.0" style="width: 100%;">
+              </div>
+            </div>
+
+            <!-- Panel: Custom HTTP -->
+            <div id="panel-custom_http" class="provider-panel" style="display: none;">
+              <div class="grid-2">
+                <div class="form-group">
+                  <label>Endpoint URL (OpenAI / Custom):</label>
+                  <input type="text" id="custom-http-url" class="form-control" placeholder="http://127.0.0.1:8000/v1/audio/speech">
+                  <div class="hint">Menerima payload JSON {"model", "input", "voice"}</div>
+                </div>
+                <div class="form-group">
+                  <label>API Key (Opsional):</label>
+                  <input type="password" id="custom-http-key" class="form-control" placeholder="Bearer token atau sk-...">
+                </div>
+              </div>
+              <div class="grid-3">
+                <div class="form-group">
+                  <label>Model Name:</label>
+                  <input type="text" id="custom-http-model" class="form-control" value="tts-1">
+                </div>
+                <div class="form-group">
+                  <label>Voice Identifier:</label>
+                  <input type="text" id="custom-http-voice" class="form-control" value="alloy">
+                </div>
+                <div class="form-group">
+                  <label>Format Output:</label>
+                  <select id="custom-http-format" class="form-control">
+                    <option value="mp3">MP3</option>
+                    <option value="wav">WAV</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Test Voice Panel -->
+          <div style="background: rgba(20, 20, 32, 0.6); padding: 18px; border-radius: 12px; border: 1px solid var(--panel-border);">
+            <h3 style="font-size: 1rem; margin-bottom: 12px; color: #ec4899;">Tes Langsung Suara Engine Terpilih</h3>
+            <div class="form-group">
+              <label>Kalimat Pengujian:</label>
+              <div style="display: flex; gap: 10px;">
+                <input type="text" id="tts-test-text" class="form-control" value="Halo! Senang sekali bisa mengobrol denganmu hari ini.">
+                <button id="tts-test-btn" class="back-btn" style="white-space: nowrap; padding: 10px 18px;">
+                  <svg style="width: 16px; height: 16px; display: inline-block; vertical-align: middle; margin-right: 4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                  </svg>
+                  Dengarkan Suara
+                </button>
+              </div>
+            </div>
+            <div id="tts-test-player-container" style="display: none; margin-top: 10px;">
+              <audio id="tts-test-audio" controls style="width: 100%; height: 38px;"></audio>
             </div>
           </div>
         </div>

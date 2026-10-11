@@ -11,7 +11,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 
 from src.core import load_config, save_config, get_mcp_config_path, db, app_logger, persona_engine
-from src.tts import TTSEngine
+from src.tts import TTSManager, TTSEngine
 from src.mcp import MCPManager
 from src.llm import LLMService
 
@@ -29,9 +29,9 @@ os.makedirs(CACHE_DIR, exist_ok=True)
 config = load_config()
 
 # Initialize Domain Services
-tts_engine = TTSEngine(
-    cache_dir=str(CACHE_DIR),
-    default_voice=config["tts"].get("default_voice", "id-ID-GadisNeural")
+tts_engine = TTSManager(
+    config=config.get("tts", {}),
+    cache_dir=str(CACHE_DIR)
 )
 mcp_manager = MCPManager(get_mcp_config_path())
 llm_service = LLMService(config, tts_engine, mcp_manager)
@@ -90,8 +90,9 @@ async def get_config():
     return {
         "models": config["live2d"]["models"],
         "default_model": config["live2d"]["default_model"],
-        "voices": config["tts"]["available_voices"],
-        "default_voice": config["tts"]["default_voice"],
+        "active_tts_provider": tts_engine.active_provider_key,
+        "voices": tts_engine.get_available_voices(),
+        "default_voice": tts_engine.default_voice,
         "llm_model": llm_service.model,
         "mcp_tools": [t["function"]["name"] for t in mcp_manager.get_openai_tools()],
         "persona": persona_data
@@ -129,9 +130,11 @@ async def reset_mood_api():
 async def get_all_settings():
     """Returns complete settings for the dedicated Settings page."""
     uploaded_bgs = [f"/backgrounds/{f.name}" for f in BG_DIR.glob("*") if f.is_file()]
+    tts_status = await tts_engine.list_providers_status()
     return {
         "config": config,
         "uploaded_backgrounds": uploaded_bgs,
+        "tts_providers": tts_status,
         "mcp_tools": [t["function"]["name"] for t in mcp_manager.get_openai_tools()]
     }
 
@@ -145,7 +148,7 @@ async def update_settings(new_settings: Dict[str, Any]):
         save_config(config)
 
         # Live reload services without restart
-        tts_engine.default_voice = config["tts"].get("default_voice", tts_engine.default_voice)
+        tts_engine.update_config(config.get("tts", {}))
         llm_service.update_config(config)
 
         app_logger.info("Settings", "Configuration updated and reloaded dynamically.")
@@ -155,17 +158,34 @@ async def update_settings(new_settings: Dict[str, Any]):
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/tts/providers")
+async def get_tts_providers():
+    """Returns status and voices of all registered TTS engines."""
+    return {"providers": await tts_engine.list_providers_status()}
+
+
+@app.get("/api/tts/voicevox/speakers")
+async def get_voicevox_speakers():
+    """Fetches real-time speakers from VOICEVOX server if running."""
+    voicevox_provider = tts_engine.providers.get("voicevox")
+    if voicevox_provider and hasattr(voicevox_provider, "fetch_engine_speakers"):
+        speakers = await voicevox_provider.fetch_engine_speakers()
+        return {"speakers": speakers}
+    return {"speakers": []}
+
+
 @app.post("/api/tts/test")
-async def test_voice(payload: Dict[str, str]):
-    """Generates preview speech for a chosen voice in the Settings page."""
-    voice = payload.get("voice", "id-ID-GadisNeural")
+async def test_voice(payload: Dict[str, Any]):
+    """Generates preview speech for a chosen voice/provider in Settings page."""
+    provider_id = payload.get("provider", tts_engine.active_provider_key)
+    voice = payload.get("voice")
     text = payload.get("text", "Halo! Ini adalah contoh tes suara untuk Ryza.")
     try:
-        res = await tts_engine.generate_audio(text, voice=voice)
+        res = await tts_engine.generate_audio(text, voice=voice, provider_id=provider_id)
         if res:
             _, audio_b64, _ = res
             return {"status": "success", "audio": audio_b64}
-        raise HTTPException(status_code=500, detail="Gagal membuat audio")
+        raise HTTPException(status_code=500, detail=f"Gagal membuat audio menggunakan engine '{provider_id}'")
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -10,6 +10,7 @@ let personaData = null;
 document.addEventListener("DOMContentLoaded", async () => {
   initTabs();
   initProviderPresets();
+  initTTSProviders();
   await loadSettings();
   await loadPersonaSettings();
   await loadHistory();
@@ -156,7 +157,102 @@ function renderArchetypeCards() {
 }
 
 // ==========================================
-// 3. Load & Populate LLM, TTS, Live2D
+// 3. Dynamic TTS Providers Setup
+// ==========================================
+function initTTSProviders() {
+  const cards = document.querySelectorAll("#tts-provider-grid .provider-card");
+  const panels = {
+    edge: document.getElementById("panel-edge"),
+    kokoro: document.getElementById("panel-kokoro"),
+    voicevox: document.getElementById("panel-voicevox"),
+    custom_http: document.getElementById("panel-custom_http")
+  };
+  const titleMap = {
+    edge: "Microsoft Edge-TTS (Cloud / Ringan)",
+    kokoro: "Kokoro-82M Neural TTS (Lokal Neural)",
+    voicevox: "VOICEVOX Engine (Karakter Anime)",
+    custom_http: "Custom HTTP / OpenAI API Endpoint"
+  };
+
+  cards.forEach((card) => {
+    card.addEventListener("click", () => {
+      cards.forEach((c) => c.classList.remove("selected"));
+      card.classList.add("selected");
+      const provider = card.dataset.provider;
+
+      const titleEl = document.getElementById("provider-config-title");
+      if (titleEl) titleEl.textContent = `Pengaturan Engine: ${titleMap[provider] || provider}`;
+
+      // Switch panels
+      Object.keys(panels).forEach((k) => {
+        if (panels[k]) panels[k].style.display = k === provider ? "block" : "none";
+      });
+    });
+  });
+
+  // Slider listeners
+  const kokoroSlider = document.getElementById("kokoro-speed-slider");
+  if (kokoroSlider) {
+    kokoroSlider.addEventListener("input", (e) => {
+      const valEl = document.getElementById("kokoro-speed-val");
+      if (valEl) valEl.textContent = `${e.target.value}x`;
+    });
+  }
+
+  const voicevoxSlider = document.getElementById("voicevox-speed-slider");
+  if (voicevoxSlider) {
+    voicevoxSlider.addEventListener("input", (e) => {
+      const valEl = document.getElementById("voicevox-speed-val");
+      if (valEl) valEl.textContent = `${e.target.value}x`;
+    });
+  }
+
+  // VOICEVOX Live Connection Check
+  const vvRefreshBtn = document.getElementById("voicevox-refresh-btn");
+  if (vvRefreshBtn) {
+    vvRefreshBtn.addEventListener("click", async () => {
+      vvRefreshBtn.textContent = "Mengecek...";
+      vvRefreshBtn.disabled = true;
+      try {
+        const res = await fetch("/api/tts/voicevox/speakers");
+        const data = await res.json();
+        const badge = document.getElementById("badge-voicevox");
+        if (data.speakers && data.speakers.length > 0) {
+          if (badge) {
+            badge.className = "status-badge available";
+            badge.textContent = `Online (${data.speakers.length} style)`;
+          }
+
+          const select = document.getElementById("voicevox-speaker-select");
+          if (select) {
+            select.innerHTML = "";
+            data.speakers.forEach((s) => {
+              const opt = document.createElement("option");
+              opt.value = s.id;
+              opt.textContent = `${s.name} [ID: ${s.id}]`;
+              select.appendChild(opt);
+            });
+          }
+          showToast(`Berhasil terhubung ke VOICEVOX (${data.speakers.length} karakter ditemukan)!`);
+        } else {
+          if (badge) {
+            badge.className = "status-badge offline";
+            badge.textContent = "Offline (50021)";
+          }
+          showToast("Engine VOICEVOX belum aktif di port 50021", "#eab308");
+        }
+      } catch (err) {
+        showToast("Gagal menghubungi VOICEVOX: " + err.message, "#ef4444");
+      } finally {
+        vvRefreshBtn.textContent = "Cek Live";
+        vvRefreshBtn.disabled = false;
+      }
+    });
+  }
+}
+
+// ==========================================
+// 4. Load & Populate LLM, TTS, Live2D
 // ==========================================
 async function loadSettings() {
   try {
@@ -173,17 +269,107 @@ async function loadSettings() {
     document.getElementById("llm-temperature").value = llm.temperature || 0.7;
     document.getElementById("temp-val").textContent = llm.temperature || 0.7;
 
-    // TTS
+    // TTS Providers
     const tts = currentConfig.tts || {};
-    const voiceSelect = document.getElementById("tts-voice");
-    voiceSelect.innerHTML = "";
-    (tts.available_voices || []).forEach((v) => {
-      const opt = document.createElement("option");
-      opt.value = v.id;
-      opt.textContent = v.name;
-      if (v.id === tts.default_voice) opt.selected = true;
-      voiceSelect.appendChild(opt);
-    });
+    const activeProvider = tts.active_provider || "edge";
+    const providers = tts.providers || {};
+
+    // 1. Edge-TTS
+    const edgeCfg = providers.edge || {};
+    const edgeSelect = document.getElementById("edge-voice-select");
+    if (edgeSelect) {
+      edgeSelect.innerHTML = "";
+      (edgeCfg.available_voices || []).forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = v.name;
+        if (v.id === edgeCfg.default_voice) opt.selected = true;
+        edgeSelect.appendChild(opt);
+      });
+    }
+    const edgeRate = document.getElementById("edge-rate-input");
+    if (edgeRate) edgeRate.value = edgeCfg.rate || "+5%";
+    const edgePitch = document.getElementById("edge-pitch-input");
+    if (edgePitch) edgePitch.value = edgeCfg.pitch || "+0Hz";
+
+    // 2. Kokoro
+    const kokoroCfg = providers.kokoro || {};
+    const kokoroSelect = document.getElementById("kokoro-voice-select");
+    if (kokoroSelect) {
+      kokoroSelect.innerHTML = "";
+      (kokoroCfg.available_voices || []).forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = v.name;
+        if (v.id === kokoroCfg.default_voice) opt.selected = true;
+        kokoroSelect.appendChild(opt);
+      });
+    }
+    const kokoroLang = document.getElementById("kokoro-lang-select");
+    if (kokoroLang) kokoroLang.value = kokoroCfg.lang_code || "j";
+    const kokoroSpeed = kokoroCfg.speed !== undefined ? kokoroCfg.speed : 1.0;
+    const kokoroSlider = document.getElementById("kokoro-speed-slider");
+    if (kokoroSlider) {
+      kokoroSlider.value = kokoroSpeed;
+      document.getElementById("kokoro-speed-val").textContent = `${kokoroSpeed}x`;
+    }
+    const kokoroPath = document.getElementById("kokoro-python-path");
+    if (kokoroPath) kokoroPath.value = kokoroCfg.python_path || "/home/hideri/coding/kokoro-arch/.venv/bin/python3";
+
+    // 3. VOICEVOX
+    const vvCfg = providers.voicevox || {};
+    const vvUrl = document.getElementById("voicevox-base-url");
+    if (vvUrl) vvUrl.value = vvCfg.base_url || "http://127.0.0.1:50021";
+    const vvSelect = document.getElementById("voicevox-speaker-select");
+    if (vvSelect) {
+      vvSelect.innerHTML = "";
+      (vvCfg.available_voices || []).forEach((v) => {
+        const opt = document.createElement("option");
+        opt.value = v.id;
+        opt.textContent = v.name;
+        if (v.id === vvCfg.default_voice) opt.selected = true;
+        vvSelect.appendChild(opt);
+      });
+    }
+    const vvSpeed = vvCfg.speed !== undefined ? vvCfg.speed : 1.0;
+    const vvSlider = document.getElementById("voicevox-speed-slider");
+    if (vvSlider) {
+      vvSlider.value = vvSpeed;
+      document.getElementById("voicevox-speed-val").textContent = `${vvSpeed}x`;
+    }
+
+    // 4. Custom HTTP
+    const customCfg = providers.custom_http || {};
+    const custUrl = document.getElementById("custom-http-url");
+    if (custUrl) custUrl.value = customCfg.endpoint_url || "http://127.0.0.1:8000/v1/audio/speech";
+    const custKey = document.getElementById("custom-http-key");
+    if (custKey) custKey.value = customCfg.api_key || "";
+    const custModel = document.getElementById("custom-http-model");
+    if (custModel) custModel.value = customCfg.model || "tts-1";
+    const custVoice = document.getElementById("custom-http-voice");
+    if (custVoice) custVoice.value = customCfg.default_voice || "alloy";
+    const custFmt = document.getElementById("custom-http-format");
+    if (custFmt) custFmt.value = customCfg.response_format || "mp3";
+
+    // Set Active Provider Card
+    const targetCard = document.querySelector(`.provider-card[data-provider="${activeProvider}"]`);
+    if (targetCard) targetCard.click();
+
+    // Check Live Status Badges
+    if (data.tts_providers) {
+      data.tts_providers.forEach((p) => {
+        const badge = document.getElementById(`badge-${p.id}`);
+        if (badge) {
+          if (p.is_available) {
+            badge.className = "status-badge available";
+            badge.textContent = p.id === "kokoro" ? "Lokal Ready" : "Tersedia";
+          } else {
+            badge.className = "status-badge offline";
+            badge.textContent = p.id === "voicevox" ? "Offline (50021)" : "Offline";
+          }
+        }
+      });
+    }
 
     // Live2D Models
     const l2d = currentConfig.live2d || {};
@@ -238,7 +424,7 @@ function initProviderPresets() {
 }
 
 // ==========================================
-// 4. Save Settings
+// 5. Save Settings
 // ==========================================
 async function saveSettings() {
   if (!currentConfig) return;
@@ -264,7 +450,7 @@ async function saveSettings() {
     });
   }
 
-  // 2. Save LLM & TTS
+  // 2. Save LLM
   currentConfig.llm = {
     provider: document.getElementById("llm-provider").value,
     model: document.getElementById("llm-model").value.trim(),
@@ -274,7 +460,61 @@ async function saveSettings() {
     system_prompt: currentConfig.llm ? currentConfig.llm.system_prompt : "",
   };
 
-  currentConfig.tts.default_voice = document.getElementById("tts-voice").value;
+  // 3. Save Multi-Provider TTS
+  const activeCard = document.querySelector("#tts-provider-grid .provider-card.selected");
+  const activeProvider = activeCard ? activeCard.dataset.provider : "edge";
+
+  if (!currentConfig.tts) currentConfig.tts = {};
+  if (!currentConfig.tts.providers) currentConfig.tts.providers = {};
+
+  currentConfig.tts.active_provider = activeProvider;
+
+  currentConfig.tts.providers.edge = {
+    ...(currentConfig.tts.providers.edge || {}),
+    default_voice: document.getElementById("edge-voice-select").value,
+    rate: document.getElementById("edge-rate-input").value.trim(),
+    pitch: document.getElementById("edge-pitch-input").value.trim(),
+    available_voices: currentConfig.tts.providers.edge ? currentConfig.tts.providers.edge.available_voices : []
+  };
+
+  currentConfig.tts.providers.kokoro = {
+    ...(currentConfig.tts.providers.kokoro || {}),
+    default_voice: document.getElementById("kokoro-voice-select").value,
+    lang_code: document.getElementById("kokoro-lang-select").value,
+    speed: parseFloat(document.getElementById("kokoro-speed-slider").value),
+    python_path: document.getElementById("kokoro-python-path").value.trim(),
+    available_voices: currentConfig.tts.providers.kokoro ? currentConfig.tts.providers.kokoro.available_voices : []
+  };
+
+  currentConfig.tts.providers.voicevox = {
+    ...(currentConfig.tts.providers.voicevox || {}),
+    base_url: document.getElementById("voicevox-base-url").value.trim(),
+    default_voice: document.getElementById("voicevox-speaker-select").value,
+    speed: parseFloat(document.getElementById("voicevox-speed-slider").value),
+    available_voices: currentConfig.tts.providers.voicevox ? currentConfig.tts.providers.voicevox.available_voices : []
+  };
+
+  currentConfig.tts.providers.custom_http = {
+    ...(currentConfig.tts.providers.custom_http || {}),
+    endpoint_url: document.getElementById("custom-http-url").value.trim(),
+    api_key: document.getElementById("custom-http-key").value.trim(),
+    model: document.getElementById("custom-http-model").value.trim(),
+    default_voice: document.getElementById("custom-http-voice").value.trim(),
+    response_format: document.getElementById("custom-http-format").value,
+    available_voices: currentConfig.tts.providers.custom_http ? currentConfig.tts.providers.custom_http.available_voices : []
+  };
+
+  // Set default_voice alias for active engine
+  if (activeProvider === "edge") {
+    currentConfig.tts.default_voice = currentConfig.tts.providers.edge.default_voice;
+  } else if (activeProvider === "kokoro") {
+    currentConfig.tts.default_voice = currentConfig.tts.providers.kokoro.default_voice;
+  } else if (activeProvider === "voicevox") {
+    currentConfig.tts.default_voice = currentConfig.tts.providers.voicevox.default_voice;
+  } else if (activeProvider === "custom_http") {
+    currentConfig.tts.default_voice = currentConfig.tts.providers.custom_http.default_voice;
+  }
+
   currentConfig.live2d.default_model = document.getElementById("live2d-default-model").value;
 
   try {
@@ -285,7 +525,7 @@ async function saveSettings() {
     });
     const result = await res.json();
     if (res.ok) {
-      showToast("Semua pengaturan & sifat karakter berhasil disimpan!");
+      showToast("Semua pengaturan & engine TTS berhasil disimpan!");
     } else {
       showToast("Gagal menyimpan: " + (result.detail || "Error"), "#ef4444");
     }
@@ -462,9 +702,23 @@ function initActionButtons() {
   document.getElementById("save-all-btn").addEventListener("click", saveSettings);
 
   document.getElementById("tts-test-btn").addEventListener("click", async () => {
-    const voice = document.getElementById("tts-voice").value;
+    const activeCard = document.querySelector("#tts-provider-grid .provider-card.selected");
+    const provider = activeCard ? activeCard.dataset.provider : "edge";
+
+    let voice = "";
+    if (provider === "edge") {
+      voice = document.getElementById("edge-voice-select").value;
+    } else if (provider === "kokoro") {
+      voice = document.getElementById("kokoro-voice-select").value;
+    } else if (provider === "voicevox") {
+      voice = document.getElementById("voicevox-speaker-select").value;
+    } else if (provider === "custom_http") {
+      voice = document.getElementById("custom-http-voice").value.trim();
+    }
+
     const text = document.getElementById("tts-test-text").value.trim() || "Halo! Ini contoh tes suara.";
     const btn = document.getElementById("tts-test-btn");
+    const origHtml = btn.innerHTML;
     btn.textContent = "Membuat Suara...";
     btn.disabled = true;
 
@@ -472,19 +726,31 @@ function initActionButtons() {
       const res = await fetch("/api/tts/test", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ voice, text }),
+        body: JSON.stringify({ provider, voice, text }),
       });
       const data = await res.json();
       if (res.ok && data.audio) {
-        const audio = new Audio("data:audio/mp3;base64," + data.audio);
-        audio.play();
+        const audioMime = (provider === "kokoro" || provider === "voicevox") ? "audio/wav" : "audio/mp3";
+        const audioSrc = `data:${audioMime};base64,${data.audio}`;
+
+        const playerContainer = document.getElementById("tts-test-player-container");
+        const player = document.getElementById("tts-test-audio");
+        if (playerContainer && player) {
+          playerContainer.style.display = "block";
+          player.src = audioSrc;
+          player.play();
+        } else {
+          const audio = new Audio(audioSrc);
+          audio.play();
+        }
+        showToast(`Suara preview (${provider}) berhasil diputar!`);
       } else {
-        alert("Gagal menghasilkan suara preview.");
+        alert("Gagal menghasilkan suara preview: " + (data.detail || "Error"));
       }
     } catch (e) {
       alert("Error preview voice: " + e.message);
     } finally {
-      btn.textContent = "Dengarkan Suara";
+      btn.innerHTML = origHtml;
       btn.disabled = false;
     }
   });

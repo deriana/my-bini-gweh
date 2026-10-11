@@ -12,33 +12,162 @@
     "system_prompt": "Kamu adalah asisten AI pribadi bernama Ryza yang ramah, ekspresif, cerdas, dan menyenangkan. Kamu berbicara santai dan akrab dalam bahasa Indonesia. Selalu sertakan satu tag emosi di awal atau tengah kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bisa bereaksi sesuai perasaanmu. Contoh: '[joy] Halo! Senang sekali bisa ngobrol bareng kamu hari ini. Ada yang bisa aku bantu?' Jangan gunakan tag emosi selain yang disebutkan."
   },
   "tts": {
+    "active_provider": "edge",
     "default_voice": "id-ID-GadisNeural",
-    "available_voices": [
-      {
-        "id": "id-ID-GadisNeural",
-        "name": "Gadis (Indonesia - Ceria/Wanita)"
+    "providers": {
+      "edge": {
+        "default_voice": "id-ID-GadisNeural",
+        "rate": "+5%",
+        "pitch": "+0Hz",
+        "available_voices": [
+          {
+            "id": "id-ID-GadisNeural",
+            "name": "Gadis (Indonesia - Ceria/Wanita)",
+            "lang": "id-ID"
+          },
+          {
+            "id": "id-ID-ArdiNeural",
+            "name": "Ardi (Indonesia - Tenang/Pria)",
+            "lang": "id-ID"
+          },
+          {
+            "id": "ja-JP-NanamiNeural",
+            "name": "Nanami (Jepang - Lucu/Anime)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "ja-JP-KeitaNeural",
+            "name": "Keita (Jepang - Sopan/Pria)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "en-US-AvaMultilingualNeural",
+            "name": "Ava (Multilingual - Alami)",
+            "lang": "en-US"
+          },
+          {
+            "id": "en-US-JennyNeural",
+            "name": "Jenny (Inggris - Ramah)",
+            "lang": "en-US"
+          }
+        ]
       },
-      {
-        "id": "id-ID-ArdiNeural",
-        "name": "Ardi (Indonesia - Tenang/Pria)"
+      "kokoro": {
+        "python_path": "/home/hideri/coding/kokoro-arch/.venv/bin/python3",
+        "default_voice": "jf_alpha",
+        "speed": 1.0,
+        "lang_code": "j",
+        "available_voices": [
+          {
+            "id": "jf_alpha",
+            "name": "Kokoro Alpha (Jepang Anime - Tsundere/Ekspresif)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "jf_tebukuro",
+            "name": "Kokoro Tebukuro (Jepang Anime - Lembut)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "jf_gongitsune",
+            "name": "Kokoro Gongitsune (Jepang Anime - Ceria)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "jf_nezumi",
+            "name": "Kokoro Nezumi (Jepang Anime - Imut)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "af_heart",
+            "name": "Kokoro Heart (Inggris - Alami & Jernih)",
+            "lang": "en-US"
+          }
+        ]
       },
-      {
-        "id": "ja-JP-NanamiNeural",
-        "name": "Nanami (Jepang - Lucu/Anime)"
+      "voicevox": {
+        "base_url": "http://127.0.0.1:50021",
+        "default_voice": "3",
+        "speed": 1.0,
+        "available_voices": [
+          {
+            "id": "3",
+            "name": "Zundamon (ずんだもん - Normal)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "1",
+            "name": "Zundamon (ずんだもん - Amaama/Manja)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "7",
+            "name": "Zundamon (ずんだもん - Tsuntsun/Tsundere)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "2",
+            "name": "Shikoku Metan (四国めたん - Normal)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "0",
+            "name": "Shikoku Metan (四国めたん - Amaama)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "8",
+            "name": "Kasukabe Tsumugi (春日部つむぎ - Normal)",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "14",
+            "name": "Meimei Himari (冥鳴ひまり - Normal)",
+            "lang": "ja-JP"
+          }
+        ]
       },
-      {
-        "id": "ja-JP-KeitaNeural",
-        "name": "Keita (Jepang - Sopan/Pria)"
-      },
-      {
-        "id": "en-US-AvaMultilingualNeural",
-        "name": "Ava (Multilingual - Alami)"
-      },
-      {
-        "id": "en-US-JennyNeural",
-        "name": "Jenny (Inggris - Ramah)"
+      "custom_http": {
+        "endpoint_url": "http://127.0.0.1:8000/v1/audio/speech",
+        "api_key": "",
+        "model": "tts-1",
+        "default_voice": "alloy",
+        "speed": 1.0,
+        "response_format": "mp3",
+        "available_voices": [
+          {
+            "id": "alloy",
+            "name": "Alloy (Neutral)",
+            "lang": "en-US"
+          },
+          {
+            "id": "echo",
+            "name": "Echo (Warm)",
+            "lang": "en-US"
+          },
+          {
+            "id": "fable",
+            "name": "Fable (Expressive)",
+            "lang": "en-US"
+          },
+          {
+            "id": "onyx",
+            "name": "Onyx (Deep)",
+            "lang": "en-US"
+          },
+          {
+            "id": "nova",
+            "name": "Nova (Energetic)",
+            "lang": "en-US"
+          },
+          {
+            "id": "shimmer",
+            "name": "Shimmer (Clear)",
+            "lang": "en-US"
+          }
+        ]
       }
-    ]
+    }
   },
   "live2d": {
     "default_model": "mao_pro",
