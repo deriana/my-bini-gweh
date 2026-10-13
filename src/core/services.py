@@ -41,6 +41,8 @@ llm_service = LLMService(
 def reload_services_config(new_config: Dict[str, Any]) -> None:
     """Updates runtime config, persists to disk, and live-reloads dependent services."""
     global config
+    if "persona" not in new_config and "persona" in config:
+        new_config["persona"] = config["persona"]
     config = new_config
     save_config(config)
 

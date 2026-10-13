@@ -36,6 +36,7 @@ async def get_all_settings():
     """Returns comprehensive settings for the dedicated Settings page."""
     uploaded_bgs = [f"/backgrounds/{f.name}" for f in BG_DIR.glob("*") if f.is_file()]
     tts_status = await tts_engine.list_providers_status()
+    config["persona"] = persona_engine.get_persona_data()
     return {
         "config": config,
         "uploaded_backgrounds": uploaded_bgs,
@@ -48,6 +49,8 @@ async def get_all_settings():
 async def update_settings(new_settings: Dict[str, Any]):
     """Saves updated settings to disk and live reloads all dependent services."""
     try:
+        if "persona" in new_settings and isinstance(new_settings["persona"], dict):
+            persona_engine.update_persona(new_settings["persona"])
         reload_services_config(new_settings)
         app_logger.info("Settings", "System configuration updated and reloaded dynamically.")
         return {"status": "success", "message": "Pengaturan berhasil disimpan dan dimuat ulang!"}

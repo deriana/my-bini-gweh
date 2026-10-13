@@ -20,14 +20,18 @@ class TestVTuberCoreUnits(unittest.TestCase):
 
     def test_persona_archetypes(self):
         """Test persona archetype setting and system prompt generation."""
-        for arch in ["tsundere", "deredere", "kuudere", "oneesan", "yandere", "sahabat"]:
-            data = self.persona.get_persona_data()
-            data["active_archetype"] = arch
-            self.persona.update_persona(data)
-            self.assertEqual(self.persona.get_persona_data().get("active_archetype"), arch)
-            prompt = self.persona.build_system_prompt()
-            self.assertIn("Ryza", prompt)
-            self.assertIn("INSTRUKSI WAJIB FORMAT & EMOSI LIVE2D", prompt)
+        orig_data = dict(self.persona.get_persona_data())
+        try:
+            for arch in ["tsundere", "deredere", "kuudere", "oneesan", "yandere", "sahabat"]:
+                data = self.persona.get_persona_data()
+                data["active_archetype"] = arch
+                self.persona.update_persona(data)
+                self.assertEqual(self.persona.get_persona_data().get("active_archetype"), arch)
+                prompt = self.persona.build_system_prompt()
+                self.assertIn("Ryza", prompt)
+                self.assertIn("INSTRUKSI WAJIB FORMAT & EMOSI LIVE2D", prompt)
+        finally:
+            self.persona.update_persona(orig_data)
 
     def test_mood_system(self):
         """Test mood setting, modifier generation, and mood tag extraction."""

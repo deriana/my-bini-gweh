@@ -472,10 +472,20 @@ async function saveSettings() {
     const subFmtInput = document.getElementById("persona-subtitle-fmt");
     if (subFmtInput) personaData.subtitle_format = subFmtInput.value;
 
+    // Ensure active archetype is read from selected card
+    const selectedArchCard = document.querySelector(".archetype-card.selected");
+    if (selectedArchCard && selectedArchCard.dataset.key) {
+      personaData.active_archetype = selectedArchCard.dataset.key;
+    }
+
     const activeKey = personaData.active_archetype;
-    if (activeKey && personaData.archetypes[activeKey]) {
+    if (activeKey && personaData.archetypes && personaData.archetypes[activeKey]) {
       personaData.archetypes[activeKey].prompt = document.getElementById("archetype-prompt-input").value.trim();
     }
+
+    // Sync personaData directly into currentConfig to prevent overwrites
+    if (!currentConfig) currentConfig = {};
+    currentConfig.persona = JSON.parse(JSON.stringify(personaData));
 
     await fetch("/api/persona", {
       method: "POST",
