@@ -128,6 +128,11 @@ async function loadServerConfig() {
     if (appConfig.persona && appConfig.persona.current_mood) {
       updateMoodBadge(appConfig.persona.current_mood);
     }
+    if (appConfig.persona && appConfig.persona.dominant_language) {
+      updateLanguageBadge(appConfig.persona.dominant_language);
+    } else {
+      updateLanguageBadge("ja");
+    }
     if (appConfig.active_tts_provider) {
       const ttsPill = document.getElementById("tts-pill");
       if (ttsPill) {
@@ -181,6 +186,48 @@ function updateMoodBadge(mood) {
 
   if (moodIcon) moodIcon.textContent = icon;
   moodText.textContent = `Mood: ${mood}`;
+}
+
+// Dominant Language Badge & Quick Toggle helper
+const LANG_MAP = {
+  ja: { icon: "🇯🇵", label: "JA", title: "Bahasa Respon: Jepang (VOICEVOX Native + Romaji)" },
+  id: { icon: "🇮🇩", label: "ID", title: "Bahasa Respon: Indonesia (VOICEVOX Katakana Phonetics)" },
+  en: { icon: "🇺🇸", label: "EN", title: "Bahasa Respon: Inggris (VOICEVOX Katakana Phonetics)" },
+  auto: { icon: "🌐", label: "AUTO", title: "Bahasa Respon: Otomatis Ikuti Input User" }
+};
+
+function updateLanguageBadge(lang) {
+  const code = (lang || "ja").toLowerCase();
+  const info = LANG_MAP[code] || { icon: "🌐", label: code.toUpperCase(), title: `Bahasa: ${code}` };
+  const btn = document.getElementById("lang-quick-btn");
+  const iconEl = document.getElementById("lang-quick-icon");
+  const textEl = document.getElementById("lang-quick-text");
+  if (iconEl) iconEl.textContent = info.icon;
+  if (textEl) textEl.textContent = info.label;
+  if (btn) btn.title = `${info.title} (Klik untuk Ganti Cepat)`;
+}
+
+async function toggleLanguageQuick() {
+  const order = ["ja", "id", "en", "auto"];
+  const current = (appConfig?.persona?.dominant_language || "ja").toLowerCase();
+  const nextIdx = (order.indexOf(current) + 1) % order.length;
+  const nextLang = order[nextIdx];
+
+  if (!appConfig) appConfig = {};
+  if (!appConfig.persona) appConfig.persona = {};
+  appConfig.persona.dominant_language = nextLang;
+  updateLanguageBadge(nextLang);
+
+  try {
+    const res = await fetch("/api/persona", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ dominant_language: nextLang })
+    });
+    console.log("Updated dominant language to:", nextLang);
+  } catch (err) {
+    console.error("Failed to update language:", err);
+  }
 }
 
 // ==========================================
@@ -880,6 +927,11 @@ function initEventListeners() {
   micBtn.addEventListener("click", toggleRecording);
   if (vadBtn) vadBtn.addEventListener("click", toggleVadMode);
   sendBtn.addEventListener("click", sendMessage);
+
+  const langQuickBtn = document.getElementById("lang-quick-btn");
+  if (langQuickBtn) {
+    langQuickBtn.addEventListener("click", toggleLanguageQuick);
+  }
 
   chatInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {

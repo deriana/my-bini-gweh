@@ -70,9 +70,11 @@ class PersonaEngine:
 
     def update_persona(self, new_persona: Dict[str, Any]):
         cfg = load_config()
-        cfg["persona"] = new_persona
+        if "persona" not in cfg:
+            cfg["persona"] = {}
+        cfg["persona"].update(new_persona)
         save_config(cfg)
-        app_logger.info("Persona", f"Updated persona settings. Active: {new_persona.get('active_archetype')}, Mood: {new_persona.get('current_mood')}")
+        app_logger.info("Persona", f"Updated persona settings. Active: {cfg['persona'].get('active_archetype')}, Lang: {cfg['persona'].get('dominant_language')}")
 
     def update_mood(self, new_mood: str):
         cfg = load_config()
