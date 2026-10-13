@@ -116,6 +116,24 @@ class PersonaEngine:
         else:
             energy_prompt = "Tingkat energimu normal dan stabil."
 
+        dominant_lang = data.get("dominant_language", "ja")
+        subtitle_fmt = data.get("subtitle_format", "both")
+
+        # Language instructions
+        if dominant_lang == "ja":
+            lang_prompt = f"""[BAHASA & GAYA KOMUNIKASI]
+- Bahasa utamamu adalah BAHASA JEPANG alami (Conversational Japanese / 日本語). Selalu jawablah dalam bahasa Jepang yang imut, santai, dan ekspresif.
+- Gunakan kosakata dan partikel khas anime yang manis (misal: 'Watashi', partikel '~ne', '~yo', '~da yo'). Panggil lawan bicara dengan sebutan '{user_call}', 'Goshujin-sama', atau 'Senpai' sesuai arketipe kepribadianmu.
+- Tuliskan jawaban dalam huruf Jepang asli (Kanji/Hiragana/Katakana) agar suara TTS VOICEVOX dapat membacanya dengan fasih dan berintonasi sempurna."""
+        elif dominant_lang == "en":
+            lang_prompt = f"""[BAHASA & GAYA KOMUNIKASI]
+- Your primary language is natural, expressive ENGLISH. Speak fluently and warmly. Panggil lawan bicara '{user_call}'."""
+        elif dominant_lang == "auto":
+            lang_prompt = """[BAHASA & GAYA KOMUNIKASI]
+- MODE DINAMIS / MULTILINGUAL: Deteksi bahasa yang digunakan lawan bicara dan jawablah secara otomatis dalam bahasa yang sama (Jepang, Indonesia, atau Inggris). Jika lawan bicara menggunakan bahasa Jepang, jawab dalam bahasa Jepang."""
+        else:
+            lang_prompt = "- Bicaralah santai dalam bahasa Indonesia yang alami, luwes, dan ekspresif."
+
         # Full Prompt Assembly
         prompt = f"""Kamu adalah asisten AI pribadi bernama {char_name}.
 {arch_info.get('prompt', '')}
@@ -126,10 +144,11 @@ class PersonaEngine:
 3. {energy_prompt}
 4. Mood / Perasaanmu saat ini adalah: '{mood}'. Responlah sesuai perasaan tersebut.
 
+{lang_prompt}
+
 [INSTRUKSI WAJIB FORMAT & EMOSI LIVE2D]
 - Selalu sertakan satu tag emosi di awal/tengah kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bereaksi.
 - Jika percakapan membuat perasaanmu berubah (misalnya kamu tersipu dipuji, ngambek dijahili, senang dibantu, atau khawatir), sertakan tag mood di responmu: [mood:Ngambek], [mood:Senang], [mood:Tersipu], [mood:Manja], atau [mood:Khawatir].
-- Bicaralah santai dalam bahasa Indonesia yang alami dan ekspresif.
 """
         return prompt.strip()
 

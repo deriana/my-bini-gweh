@@ -78,19 +78,25 @@ class VoicevoxTTSProvider(BaseTTSProvider):
         if not text or not text.strip():
             return None
 
-        base_url = self._get_base_url()
         speaker_id = str(voice or self.config.get("default_voice", "3"))
+        if not speaker_id.isdigit():
+            speaker_id = str(self.config.get("default_voice", "3"))
         speed = float(self.config.get("speed", 1.0))
 
         file_id = f"voicevox_{uuid.uuid4().hex[:12]}.wav"
         file_path = os.path.join(self.cache_dir, file_id)
+
+        from src.core.romanize import prepare_for_voicevox
+        synth_text = prepare_for_voicevox(text)
+        if not synth_text:
+            synth_text = text.strip()
 
         try:
             async with httpx.AsyncClient(timeout=15.0) as client:
                 # 1. Generate audio query
                 query_res = await client.post(
                     f"{base_url}/audio_query",
-                    params={"text": text.strip(), "speaker": speaker_id}
+                    params={"text": synth_text, "speaker": speaker_id}
                 )
                 if query_res.status_code != 200:
                     print(f"[VoicevoxTTSProvider] audio_query failed ({query_res.status_code}): {query_res.text}")

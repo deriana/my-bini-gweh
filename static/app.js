@@ -321,9 +321,32 @@ function enableModelDragging() {
   });
 }
 
+// Helper to escape HTML safely
+function escapeHtml(str) {
+  if (!str) return "";
+  return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+// Sets speech bubble content with optional Romaji furigana/subtitle
+function setBubbleContent(item) {
+  if (item && item.romaji && item.clean_text) {
+    bubbleText.innerHTML = `<span class="bubble-jp">${escapeHtml(item.clean_text)}</span><span class="bubble-romaji">${escapeHtml(item.romaji)}</span>`;
+  } else if (item && item.display_text) {
+    bubbleText.textContent = item.display_text;
+  } else if (typeof item === "string") {
+    bubbleText.textContent = item;
+  } else {
+    bubbleText.textContent = (item && (item.clean_text || item.text)) || "";
+  }
+}
+
 // Helper to show speech bubble
-function showSpeechBubble(text) {
-  bubbleText.textContent = text;
+function showSpeechBubble(text, romaji = null) {
+  if (romaji) {
+    bubbleText.innerHTML = `<span class="bubble-jp">${escapeHtml(text)}</span><span class="bubble-romaji">${escapeHtml(romaji)}</span>`;
+  } else {
+    bubbleText.textContent = text;
+  }
   speechBubble.classList.remove("hidden");
   if (bubbleTimeout) clearTimeout(bubbleTimeout);
   bubbleTimeout = setTimeout(() => {
@@ -491,6 +514,7 @@ function queueAudioPayload(payload) {
 function playNextAudio() {
   if (audioQueue.length === 0) {
     isPlayingAudio = false;
+    speechBubble.classList.remove("speaking");
     if (bubbleTimeout) clearTimeout(bubbleTimeout);
     bubbleTimeout = setTimeout(() => {
       speechBubble.classList.add("hidden");
@@ -511,8 +535,9 @@ function playNextAudio() {
   const item = audioQueue.shift();
 
   // Show speech bubble
-  bubbleText.textContent = item.clean_text || item.text;
+  setBubbleContent(item);
   speechBubble.classList.remove("hidden");
+  speechBubble.classList.add("speaking");
   if (bubbleTimeout) clearTimeout(bubbleTimeout);
 
   // Trigger emotion expression if present
@@ -528,6 +553,7 @@ function playNextAudio() {
 
   audio.onplay = () => {
     startTime = performance.now();
+    speechBubble.classList.add("speaking");
     if (mouthInterval) clearInterval(mouthInterval);
 
     mouthInterval = setInterval(() => {
@@ -551,6 +577,7 @@ function playNextAudio() {
 
   audio.onerror = (e) => {
     console.error("Audio playback error:", e);
+    speechBubble.classList.remove("speaking");
     if (mouthInterval) clearInterval(mouthInterval);
     setMouthOpen(0);
     playNextAudio();
@@ -558,6 +585,7 @@ function playNextAudio() {
 
   audio.play().catch((e) => {
     console.warn("Autoplay was blocked or failed:", e);
+    speechBubble.classList.remove("speaking");
     playNextAudio();
   });
 }
@@ -588,7 +616,7 @@ function connectWebSocket() {
         queueAudioPayload(msg);
         updateStatus("Berbicara...", "status-online");
       } else if (msg.type === "text") {
-        bubbleText.textContent = msg.clean_text || msg.text;
+        setBubbleContent(msg);
         speechBubble.classList.remove("hidden");
       } else if (msg.type === "done") {
         updateStatus("Online", "status-online");

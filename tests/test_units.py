@@ -106,6 +106,43 @@ class TestVTuberCoreUnits(unittest.TestCase):
         if os.path.exists(test_db_path):
             os.remove(test_db_path)
 
+    def test_romanize_module(self):
+        """Test Japanese to Romaji conversion and Latin to Katakana transliteration."""
+        from src.core.romanize import (
+            contains_japanese,
+            to_romaji,
+            format_display_text,
+            latin_to_japanese_phonetic,
+            prepare_for_voicevox,
+        )
+
+        # Japanese detection
+        self.assertTrue(contains_japanese("おはようございます"))
+        self.assertFalse(contains_japanese("Selamat pagi, bro!"))
+
+        # Japanese to Romaji
+        romaji = to_romaji("おはよう、ご主人様！")
+        self.assertIn("Ohayou", romaji)
+        self.assertIn("shujinsama", romaji)
+
+        # Format display text
+        display_both = format_display_text("こんにちは！", subtitle_format="both")
+        self.assertIn("こんにちは！", display_both)
+        self.assertIn("Konnichiwa", display_both)
+
+        # Latin to Katakana phonetics for VOICEVOX
+        kata = latin_to_japanese_phonetic("selamat pagi apa kabar")
+        self.assertIn("セラマト", kata)
+        self.assertIn("パギ", kata)
+
+        # Prepare for VOICEVOX
+        prep_pure_jp = prepare_for_voicevox("おはよう！")
+        self.assertEqual(prep_pure_jp, "おはよう！")
+
+        prep_mixed = prepare_for_voicevox("今日はcodingするよ！")
+        self.assertIn("今日は", prep_mixed)
+        self.assertIn("するよ！", prep_mixed)
+
 
 if __name__ == "__main__":
     unittest.main()

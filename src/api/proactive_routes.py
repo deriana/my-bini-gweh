@@ -36,11 +36,18 @@ async def get_proactive_greeting(model: Optional[str] = None):
     if audio_res:
         _, audio_b64, volumes = audio_res
 
+    from src.core.romanize import to_romaji, format_display_text, contains_japanese
+    subtitle_fmt = persona_data.get("subtitle_format", "both")
+    romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
+    display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
+
     return {
         "status": "success",
         "period": proactive_engine.get_time_period(),
         "text": raw_text,
         "clean_text": clean_text,
+        "romaji": romaji,
+        "display_text": display_text,
         "emotion": emotion,
         "expression_index": expression_idx,
         "audio": audio_b64,
@@ -71,10 +78,17 @@ async def get_break_reminder(model: Optional[str] = None):
     if audio_res:
         _, audio_b64, volumes = audio_res
 
+    from src.core.romanize import to_romaji, format_display_text, contains_japanese
+    subtitle_fmt = persona_data.get("subtitle_format", "both")
+    romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
+    display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
+
     return {
         "status": "success",
         "text": raw_text,
         "clean_text": clean_text,
+        "romaji": romaji,
+        "display_text": display_text,
         "emotion": emotion,
         "expression_index": expression_idx,
         "audio": audio_b64,

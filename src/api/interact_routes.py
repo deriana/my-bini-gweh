@@ -50,11 +50,18 @@ async def handle_touch_interaction(payload: Dict[str, Any]):
     db.add_message(session_id=session_id, role="user", content=f"*[Menyentuh avatar: {action_label}]*")
     db.add_message(session_id=session_id, role="assistant", content=raw_text)
 
+    from src.core.romanize import to_romaji, format_display_text, contains_japanese
+    subtitle_fmt = persona_data.get("subtitle_format", "both")
+    romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
+    display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
+
     return {
         "status": "success",
         "touch_type": touch_type,
         "text": raw_text,
         "clean_text": clean_text,
+        "romaji": romaji,
+        "display_text": display_text,
         "emotion": emotion,
         "expression_index": expression_idx,
         "audio": audio_b64,

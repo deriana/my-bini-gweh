@@ -155,6 +155,11 @@ class LLMService:
                                 app_logger.info("Emotion", f"Detected emotion: [{emotion}] -> Expr index {expression_idx}")
 
                             if clean_text:
+                                from src.core.romanize import to_romaji, format_display_text, contains_japanese
+                                subtitle_fmt = persona_engine.get_persona_data().get("subtitle_format", "both")
+                                romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
+                                display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
+
                                 audio_result = await self.tts_engine.generate_audio(clean_text, active_voice, emotion)
                                 if audio_result:
                                     _, audio_b64, volumes = audio_result
@@ -162,6 +167,8 @@ class LLMService:
                                         "type": "audio",
                                         "text": sentence,
                                         "clean_text": clean_text,
+                                        "romaji": romaji,
+                                        "display_text": display_text,
                                         "emotion": emotion,
                                         "expression_index": expression_idx,
                                         "audio": audio_b64,
@@ -172,6 +179,8 @@ class LLMService:
                                         "type": "text",
                                         "text": sentence,
                                         "clean_text": clean_text,
+                                        "romaji": romaji,
+                                        "display_text": display_text,
                                         "emotion": emotion,
                                         "expression_index": expression_idx
                                     })
@@ -189,6 +198,11 @@ class LLMService:
 
                 clean_text, emotion, expression_idx = parse_emotion_and_clean(sentence, emotion_map)
                 if clean_text:
+                    from src.core.romanize import to_romaji, format_display_text, contains_japanese
+                    subtitle_fmt = persona_engine.get_persona_data().get("subtitle_format", "both")
+                    romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
+                    display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
+
                     audio_result = await self.tts_engine.generate_audio(clean_text, active_voice, emotion)
                     if audio_result:
                         _, audio_b64, volumes = audio_result
@@ -196,6 +210,8 @@ class LLMService:
                             "type": "audio",
                             "text": sentence,
                             "clean_text": clean_text,
+                            "romaji": romaji,
+                            "display_text": display_text,
                             "emotion": emotion,
                             "expression_index": expression_idx,
                             "audio": audio_b64,
@@ -206,6 +222,8 @@ class LLMService:
                             "type": "text",
                             "text": sentence,
                             "clean_text": clean_text,
+                            "romaji": romaji,
+                            "display_text": display_text,
                             "emotion": emotion,
                             "expression_index": expression_idx
                         })

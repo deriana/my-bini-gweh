@@ -506,6 +506,35 @@
               <button id="reset-mood-btn" class="back-btn">Reset Mood ke Ceria</button>
             </div>
           </div>
+
+          <!-- Konsep 4: Bahasa Respon & Romanisasi (Single-Language Engine Mode) -->
+          <div style="background: rgba(20, 20, 32, 0.6); padding: 18px; border-radius: 12px; border: 1px solid var(--panel-border); margin-top: 20px;">
+            <h3 style="font-size: 1rem; margin-bottom: 14px; color: #38bdf8;">4. Bahasa Respon & Romanisasi (Single-Language Engine Mode)</h3>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 12px;">
+              Tentukan bahasa dominan respon AI. Bila memakai engine 1 bahasa (seperti VOICEVOX), teks Jepang akan otomatis diromanisasi (Romaji) di layar, dan teks Latin akan ditransliterasi ke fonetik Katakana agar suara tidak patah.
+            </p>
+            <div class="grid-2">
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Bahasa Dominan Respon AI:</label>
+                <select id="persona-dominant-lang" class="form-control">
+                  <option value="ja">🇯🇵 Bahasa Jepang (Conversational Japanese / 日本語)</option>
+                  <option value="id">🇮🇩 Bahasa Indonesia (Santai & Akrab)</option>
+                  <option value="en">🇺🇸 Bahasa Inggris (English)</option>
+                  <option value="auto">🌐 Otomatis (Mengikuti Bahasa Lawan Bicara)</option>
+                </select>
+                <div class="hint">Jika pakai VOICEVOX, disarankan pilih Jepang agar suara 100% fasih & alami.</div>
+              </div>
+              <div class="form-group" style="margin-bottom: 0;">
+                <label>Format Subtitle / Speech Bubble:</label>
+                <select id="persona-subtitle-fmt" class="form-control">
+                  <option value="both">Teks Asli + Romanisasi (Romaji di Bawahnya)</option>
+                  <option value="japanese_only">Hanya Huruf Jepang Asli</option>
+                  <option value="romaji_only">Hanya Romanisasi (Romaji Saja)</option>
+                </select>
+                <div class="hint">Menampilkan teks romaji di bawah huruf Kanji/Kana agar mudah dipahami.</div>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- 1. LLM Settings -->

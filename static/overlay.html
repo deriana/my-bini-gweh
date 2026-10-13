@@ -31,28 +31,66 @@
     }
     #speech-bubble {
       position: absolute;
-      bottom: 24px;
+      bottom: 28px;
       left: 50%;
       transform: translateX(-50%);
       max-width: 85%;
       min-width: 280px;
-      background: rgba(15, 15, 25, 0.85);
-      backdrop-filter: blur(12px);
-      border: 1px solid rgba(139, 92, 246, 0.4);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 16px rgba(139, 92, 246, 0.2);
-      border-radius: 14px;
-      padding: 12px 20px;
+      background: rgba(12, 12, 22, 0.9);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(139, 92, 246, 0.5);
+      box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 24px rgba(139, 92, 246, 0.3);
+      border-radius: 18px;
+      padding: 14px 22px;
       color: #fff;
       font-size: 1.05rem;
-      line-height: 1.4;
+      line-height: 1.45;
       text-align: center;
-      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       z-index: 100;
+      animation: overlayBubblePopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    #speech-bubble::before {
+      content: "";
+      position: absolute;
+      top: -9px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 9px solid transparent;
+      border-right: 9px solid transparent;
+      border-bottom: 9px solid rgba(139, 92, 246, 0.5);
     }
     #speech-bubble.hidden {
       opacity: 0;
-      transform: translateX(-50%) translateY(16px);
+      transform: translateX(-50%) translateY(16px) scale(0.92);
       pointer-events: none;
+      animation: none;
+    }
+    #speech-bubble.speaking {
+      animation: overlayBubbleSpeaking 2.4s infinite ease-in-out;
+      border-color: rgba(196, 181, 253, 0.85);
+    }
+    @keyframes overlayBubblePopIn {
+      0% {
+        opacity: 0;
+        transform: translateX(-50%) translateY(16px) scale(0.92);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0) scale(1);
+      }
+    }
+    @keyframes overlayBubbleSpeaking {
+      0%, 100% {
+        box-shadow: 0 10px 32px rgba(0, 0, 0, 0.65), 0 0 20px rgba(139, 92, 246, 0.3);
+        border-color: rgba(139, 92, 246, 0.5);
+      }
+      50% {
+        box-shadow: 0 14px 42px rgba(0, 0, 0, 0.75), 0 0 32px rgba(167, 139, 250, 0.6);
+        border-color: rgba(196, 181, 253, 0.9);
+      }
     }
     .bubble-speaker {
       font-size: 0.75rem;
@@ -61,6 +99,22 @@
       letter-spacing: 0.05em;
       color: #a78bfa;
       margin-bottom: 4px;
+    }
+    .bubble-text {
+      white-space: pre-line;
+    }
+    .bubble-jp {
+      display: block;
+      font-size: 1.15rem;
+      font-weight: 600;
+    }
+    .bubble-romaji {
+      display: block;
+      font-size: 0.85rem;
+      color: #c4b5fd;
+      font-style: italic;
+      margin-top: 3px;
+      opacity: 0.95;
     }
   </style>
 
@@ -139,21 +193,36 @@
       ws.onmessage = (e) => {
         const data = JSON.parse(e.data);
         if (data.type === "audio") {
-          if (data.clean_text) showBubble(data.clean_text);
+          if (data.clean_text) showBubble(data);
           if (data.expression_index !== null && currentModel) {
             try { currentModel.expression(data.expression_index); } catch(ex){}
           }
           if (data.audio) enqueueAudio(data.audio, data.volumes || []);
+        } else if (data.type === "text") {
+          if (data.clean_text) showBubble(data);
         }
       };
 
       ws.onclose = () => setTimeout(connectWS, 3000);
     }
 
-    function showBubble(text) {
+    function escapeHtml(str) {
+      if (!str) return "";
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    function showBubble(item) {
       const bubble = document.getElementById("speech-bubble");
       const bText = document.getElementById("bubble-text");
-      bText.textContent = text;
+      if (item && item.romaji && item.clean_text) {
+        bText.innerHTML = `<span class="bubble-jp">${escapeHtml(item.clean_text)}</span><span class="bubble-romaji">${escapeHtml(item.romaji)}</span>`;
+      } else if (item && item.display_text) {
+        bText.textContent = item.display_text;
+      } else if (typeof item === "string") {
+        bText.textContent = item;
+      } else {
+        bText.textContent = (item && (item.clean_text || item.text)) || "";
+      }
       bubble.classList.remove("hidden");
 
       if (bubbleTimeout) clearTimeout(bubbleTimeout);
@@ -166,11 +235,14 @@
     }
 
     function playNextAudio() {
+      const bubble = document.getElementById("speech-bubble");
       if (audioQueue.length === 0) {
         isPlayingAudio = false;
+        if (bubble) bubble.classList.remove("speaking");
         return;
       }
       isPlayingAudio = true;
+      if (bubble) bubble.classList.add("speaking");
       const { audioB64, volumes } = audioQueue.shift();
       const audio = new Audio("data:audio/mp3;base64," + audioB64);
 
@@ -180,10 +252,14 @@
         playNextAudio();
       };
       audio.onerror = () => {
+        if (bubble) bubble.classList.remove("speaking");
         stopMouth();
         playNextAudio();
       };
-      audio.play().catch(() => playNextAudio());
+      audio.play().catch(() => {
+        if (bubble) bubble.classList.remove("speaking");
+        playNextAudio();
+      });
     }
 
     function syncMouth(volumes) {

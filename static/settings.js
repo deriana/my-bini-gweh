@@ -80,6 +80,12 @@ async function loadPersonaSettings() {
     const moodSelect = document.getElementById("persona-mood-select");
     moodSelect.value = personaData.current_mood || "Ceria";
 
+    // Dominant Language & Subtitle Format
+    const langSelect = document.getElementById("persona-dominant-lang");
+    if (langSelect) langSelect.value = personaData.dominant_language || "ja";
+    const subFmtSelect = document.getElementById("persona-subtitle-fmt");
+    if (subFmtSelect) subFmtSelect.value = personaData.subtitle_format || "both";
+
     // Reset mood
     document.getElementById("reset-mood-btn").addEventListener("click", async () => {
       const resetRes = await fetch("/api/mood/reset", { method: "POST" });
@@ -437,6 +443,11 @@ async function saveSettings() {
     personaData.tsundere_level = parseInt(document.getElementById("slider-tsundere").value);
     personaData.energy_level = parseInt(document.getElementById("slider-energy").value);
     personaData.current_mood = document.getElementById("persona-mood-select").value;
+
+    const langInput = document.getElementById("persona-dominant-lang");
+    if (langInput) personaData.dominant_language = langInput.value;
+    const subFmtInput = document.getElementById("persona-subtitle-fmt");
+    if (subFmtInput) personaData.subtitle_format = subFmtInput.value;
 
     const activeKey = personaData.active_archetype;
     if (activeKey && personaData.archetypes[activeKey]) {
