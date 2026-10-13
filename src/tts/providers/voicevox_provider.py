@@ -78,6 +78,7 @@ class VoicevoxTTSProvider(BaseTTSProvider):
         if not text or not text.strip():
             return None
 
+        base_url = self._get_base_url()
         speaker_id = str(voice or self.config.get("default_voice", "3"))
         if not speaker_id.isdigit():
             speaker_id = str(self.config.get("default_voice", "3"))

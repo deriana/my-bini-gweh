@@ -364,7 +364,7 @@ async function triggerTouchReaction(touchType) {
       body: JSON.stringify({
         touch_type: touchType,
         model: currentModelKey || "mao_pro",
-        voice: (appConfig && appConfig.default_voice) ? appConfig.default_voice : "id-ID-GadisNeural",
+        voice: (appConfig && appConfig.default_voice) ? appConfig.default_voice : "3",
         session_id: "default"
       })
     });
@@ -678,7 +678,7 @@ async function sendMessage() {
       text: text,
       image: capturedImage,
       model: currentModelKey,
-      voice: appConfig ? appConfig.default_voice : "id-ID-GadisNeural",
+      voice: appConfig ? appConfig.default_voice : "3",
       session_id: "default",
     })
   );

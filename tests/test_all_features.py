@@ -142,7 +142,7 @@ def test_websocket_duplex():
             "type": "chat",
             "text": "Hai cantik!",
             "model": "mao_pro",
-            "voice": "id-ID-GadisNeural",
+            "voice": "3",
             "session_id": "test_session"
         })
 
