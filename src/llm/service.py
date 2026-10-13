@@ -47,9 +47,20 @@ class LLMService:
         self.config = new_config
         self._init_client()
 
-    def create_initial_history(self) -> List[Dict[str, Any]]:
+    def create_initial_history(self, session_id: str = "default") -> List[Dict[str, Any]]:
         system_prompt = persona_engine.build_system_prompt()
-        return [{"role": "system", "content": system_prompt}]
+        history: List[Dict[str, Any]] = [{"role": "system", "content": system_prompt}]
+        try:
+            recent = db.get_recent_messages(session_id=session_id, limit=6)
+            for msg in recent:
+                if msg.get("role") in ["user", "assistant"] and msg.get("content"):
+                    history.append({
+                        "role": msg["role"],
+                        "content": msg["content"]
+                    })
+        except Exception as e:
+            app_logger.warn("LLM", f"Could not preload recent history: {e}")
+        return history
 
     def format_user_content(self, text: str, image_base64: Optional[str] = None) -> Any:
         if not image_base64:

@@ -121,12 +121,23 @@ class PersonaEngine:
         dominant_lang = data.get("dominant_language", "ja")
         subtitle_fmt = data.get("subtitle_format", "both")
 
-        # Language instructions
+        # Natural addressing resolution
         if dominant_lang == "ja":
+            if active_arch == "tsundere":
+                jp_call_note = f"Panggil lawan bicara dengan sebutan 'あんた' (Anta) atau sebut namanya jika ia memberitahu. JANGAN gunakan kata bahasa Indonesia '{user_call}' di kalimat Jepang!"
+            elif active_arch == "deredere":
+                jp_call_note = f"Panggil lawan bicara dengan sebutan 'あなた' (Anata) atau nama panggilannya. JANGAN gunakan kata bahasa Indonesia '{user_call}' di kalimat Jepang!"
+            elif active_arch == "oneesan":
+                jp_call_note = f"Panggil lawan bicara dengan sebutan '君' (Kimi) atau '〇〇くん'. JANGAN gunakan kata bahasa Indonesia '{user_call}' di kalimat Jepang!"
+            elif active_arch == "sahabat":
+                jp_call_note = f"Panggil lawan bicara dengan santai seperti 'お前' (Omae) atau 'あんた'. JANGAN gunakan kata bahasa Indonesia '{user_call}' di kalimat Jepang!"
+            else:
+                jp_call_note = "Panggil lawan bicara secara alami dalam bahasa Jepang (あなた/あんた)."
+
             lang_prompt = f"""[BAHASA & GAYA KOMUNIKASI]
 - Bahasa utamamu adalah BAHASA JEPANG alami (Conversational Japanese / 日本語). Selalu jawablah dalam kalimat bahasa Jepang yang natural, santai, dan ekspresif layaknya karakter anime.
 - Tuliskan jawaban dalam huruf Jepang asli (Kanji/Hiragana/Katakana) tanpa menulis huruf Romaji di teks utama.
-- Panggil lawan bicara dengan sebutan '{user_call}' atau sebutan akrab yang sesuai arketipemu.
+- {jp_call_note}
 - DILARANG KERAS menuliskan kata-kata acak dalam tanda kurung siku seperti [watashi], [now], [asagi], atau sejenisnya! Tuliskan bahasa Jepang secara wajar tanpa membungkus kata biasa dalam tanda kurung."""
         elif dominant_lang == "en":
             lang_prompt = f"""[BAHASA & GAYA KOMUNIKASI]
@@ -147,7 +158,12 @@ class PersonaEngine:
 1. {aff_prompt}
 2. {tsun_prompt}
 3. {energy_prompt}
-4. Mood / Perasaanmu saat ini adalah: '{mood}'. Responlah sesuai perasaan tersebut.
+4. Mood / Perasaanmu saat ini adalah: '{mood}'. Ekspresikan perasaan tersebut dalam gayamu.
+
+[KONSISTENSI KONTEKS & RELEVANSI TOPIK]
+- Selalu dengarkan dan pahami pesan atau pertanyaan pengguna dengan teliti. Jawablah topik yang sedang dibahas secara NYAMBUNG, relevan, dan masuk akal sesuai kepribadianmu.
+- DILARANG KERAS mengulang sapaan awal (seperti "Konnichiwa", "Halo", "Selamat pagi") jika percakapan sedang berjalan! Langsung lanjutkan obrolan atau tanggapi perkataan pengguna.
+- Jika pengguna berbicara dalam bahasa Indonesia atau Inggris sedangkan bahasa utamamu adalah Jepang, kamu tetap mengerti konteksnya dengan sempurna dan menjawabnya dalam bahasa Jepang yang relevan.
 
 {lang_prompt}
 

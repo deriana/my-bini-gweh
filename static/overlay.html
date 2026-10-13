@@ -32,10 +32,11 @@
     #speech-bubble {
       position: absolute;
       bottom: 28px;
-      left: 50%;
-      transform: translateX(-50%);
-      max-width: 85%;
-      min-width: 280px;
+      right: 28px;
+      left: auto;
+      transform: none;
+      max-width: 440px;
+      min-width: 260px;
       background: rgba(12, 12, 22, 0.9);
       backdrop-filter: blur(16px);
       border: 1.5px solid rgba(139, 92, 246, 0.5);
@@ -45,7 +46,7 @@
       color: #fff;
       font-size: 1.05rem;
       line-height: 1.45;
-      text-align: center;
+      text-align: left;
       transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
       z-index: 100;
       animation: overlayBubblePopIn 0.38s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
@@ -53,18 +54,17 @@
     #speech-bubble::before {
       content: "";
       position: absolute;
-      top: -9px;
-      left: 50%;
-      transform: translateX(-50%);
+      bottom: 20px;
+      left: -9px;
       width: 0;
       height: 0;
-      border-left: 9px solid transparent;
-      border-right: 9px solid transparent;
-      border-bottom: 9px solid rgba(139, 92, 246, 0.5);
+      border-top: 8px solid transparent;
+      border-bottom: 8px solid transparent;
+      border-right: 9px solid rgba(139, 92, 246, 0.6);
     }
     #speech-bubble.hidden {
       opacity: 0;
-      transform: translateX(-50%) translateY(16px) scale(0.92);
+      transform: translateY(16px) scale(0.92);
       pointer-events: none;
       animation: none;
     }
@@ -75,11 +75,11 @@
     @keyframes overlayBubblePopIn {
       0% {
         opacity: 0;
-        transform: translateX(-50%) translateY(16px) scale(0.92);
+        transform: translateY(16px) scale(0.92);
       }
       100% {
         opacity: 1;
-        transform: translateX(-50%) translateY(0) scale(1);
+        transform: translateY(0) scale(1);
       }
     }
     @keyframes overlayBubbleSpeaking {

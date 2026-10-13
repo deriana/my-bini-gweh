@@ -213,60 +213,6 @@ function initTTSProviders() {
     });
   }
 
-  function renderSpeakerList(speakers, selectedId) {
-    const vvSelect = document.getElementById("voicevox-speaker-select");
-    if (!vvSelect || !speakers || speakers.length === 0) return;
-    vvSelect.innerHTML = "";
-    const groups = {};
-    speakers.forEach((s) => {
-      const char = s.character || (s.name.includes("-") ? s.name.split("-")[0].trim() : "Lainnya");
-      if (!groups[char]) groups[char] = [];
-      groups[char].push(s);
-    });
-
-    for (const [char, styles] of Object.entries(groups)) {
-      const optGroup = document.createElement("optgroup");
-      optGroup.label = char;
-      styles.forEach((s) => {
-        const opt = document.createElement("option");
-        opt.value = s.id;
-        opt.textContent = `${s.name} [ID: ${s.id}]`;
-        if (String(s.id) === String(selectedId)) opt.selected = true;
-        optGroup.appendChild(opt);
-      });
-      vvSelect.appendChild(optGroup);
-    }
-    if (selectedId) vvSelect.value = String(selectedId);
-  }
-
-  // VOICEVOX Live Dynamic Speaker Population helper
-  async function populateVoicevoxSpeakers(selectedId) {
-    const vvCfg = currentConfig?.tts?.providers?.voicevox || {};
-    if (vvCfg.available_voices && vvCfg.available_voices.length > 0) {
-      renderSpeakerList(vvCfg.available_voices, selectedId || vvCfg.default_voice || "3");
-    }
-
-    try {
-      const res = await fetch("/api/tts/voicevox/speakers");
-      const data = await res.json();
-      const badge = document.getElementById("badge-voicevox");
-      if (data.speakers && data.speakers.length > 0) {
-        if (badge) {
-          badge.className = "status-badge available";
-          badge.textContent = `Online (${data.speakers.length} style)`;
-        }
-        renderSpeakerList(data.speakers, selectedId || vvCfg.default_voice || "3");
-      } else {
-        if (badge) {
-          badge.className = "status-badge offline";
-          badge.textContent = "Offline (50021)";
-        }
-      }
-    } catch (err) {
-      console.warn("Failed to fetch live VOICEVOX speakers:", err);
-    }
-  }
-
   // VOICEVOX Live Connection Check
   const vvRefreshBtn = document.getElementById("voicevox-refresh-btn");
   if (vvRefreshBtn) {
@@ -285,6 +231,62 @@ function initTTSProviders() {
         vvRefreshBtn.disabled = false;
       }
     });
+  }
+}
+
+// ==========================================
+// VOICEVOX Speaker Rendering & Fetching (Module Scope)
+// ==========================================
+function renderSpeakerList(speakers, selectedId) {
+  const vvSelect = document.getElementById("voicevox-speaker-select");
+  if (!vvSelect || !speakers || speakers.length === 0) return;
+  vvSelect.innerHTML = "";
+  const groups = {};
+  speakers.forEach((s) => {
+    const char = s.character || (s.name.includes("-") ? s.name.split("-")[0].trim() : "Lainnya");
+    if (!groups[char]) groups[char] = [];
+    groups[char].push(s);
+  });
+
+  for (const [char, styles] of Object.entries(groups)) {
+    const optGroup = document.createElement("optgroup");
+    optGroup.label = char;
+    styles.forEach((s) => {
+      const opt = document.createElement("option");
+      opt.value = s.id;
+      opt.textContent = `${s.name} [ID: ${s.id}]`;
+      if (String(s.id) === String(selectedId)) opt.selected = true;
+      optGroup.appendChild(opt);
+    });
+    vvSelect.appendChild(optGroup);
+  }
+  if (selectedId) vvSelect.value = String(selectedId);
+}
+
+async function populateVoicevoxSpeakers(selectedId) {
+  const vvCfg = currentConfig?.tts?.providers?.voicevox || {};
+  if (vvCfg.available_voices && vvCfg.available_voices.length > 0) {
+    renderSpeakerList(vvCfg.available_voices, selectedId || vvCfg.default_voice || "3");
+  }
+
+  try {
+    const res = await fetch("/api/tts/voicevox/speakers");
+    const data = await res.json();
+    const badge = document.getElementById("badge-voicevox");
+    if (data.speakers && data.speakers.length > 0) {
+      if (badge) {
+        badge.className = "status-badge available";
+        badge.textContent = `Online (${data.speakers.length} style)`;
+      }
+      renderSpeakerList(data.speakers, selectedId || vvCfg.default_voice || "3");
+    } else {
+      if (badge) {
+        badge.className = "status-badge offline";
+        badge.textContent = "Offline (50021)";
+      }
+    }
+  } catch (err) {
+    console.warn("Failed to fetch live VOICEVOX speakers:", err);
   }
 }
 

@@ -117,9 +117,11 @@ class VoicevoxTTSProvider(BaseTTSProvider):
             return None
 
         base_url = self._get_base_url()
-        speaker_id = str(voice or self.config.get("default_voice", "3"))
+        speaker_id = str(voice or "").strip()
         if not speaker_id.isdigit():
-            speaker_id = str(self.config.get("default_voice", "3"))
+            speaker_id = str(self.config.get("default_voice") or "3").strip()
+        if not speaker_id.isdigit():
+            speaker_id = "3"
         speed = float(self.config.get("speed", 1.0))
 
         file_id = f"voicevox_{uuid.uuid4().hex[:12]}.wav"

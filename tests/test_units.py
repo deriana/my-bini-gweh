@@ -45,12 +45,16 @@ class TestVTuberCoreUnits(unittest.TestCase):
         self.assertEqual(self.persona.get_persona_data().get("current_mood"), "Ceria")
 
     def test_interact_engine_touch(self):
-        """Test touch reactions for headpat, poke, and body across archetypes."""
-        for arch in ["tsundere", "deredere", "kuudere", "oneesan", "yandere", "sahabat"]:
-            for touch in ["headpat", "poke", "body"]:
-                text, tag = InteractEngine.get_touch_reaction(touch, archetype=arch)
-                self.assertTrue(len(text) > 0, f"Empty reaction for {arch} {touch}")
-                self.assertTrue(len(tag) > 0, f"Invalid tag {tag}")
+        """Test touch reactions for headpat, poke, and body across archetypes and languages."""
+        for lang in ["ja", "id", "en"]:
+            for arch in ["tsundere", "deredere", "kuudere", "oneesan", "yandere", "sahabat"]:
+                for touch in ["headpat", "poke", "body"]:
+                    text, tag = InteractEngine.get_touch_reaction(touch, archetype=arch, lang=lang)
+                    self.assertTrue(len(text) > 0, f"Empty reaction for {arch} {touch} {lang}")
+                    self.assertTrue(len(tag) > 0, f"Invalid tag {tag}")
+                    if lang == "ja":
+                        from src.core.romanize import contains_japanese
+                        self.assertTrue(contains_japanese(text), f"Reaction should contain Japanese: {text}")
 
     def test_proactive_engine(self):
         """Test proactive greeting and wellness reminders."""
@@ -101,6 +105,11 @@ class TestVTuberCoreUnits(unittest.TestCase):
         self.assertEqual(len(history), 2)
         self.assertEqual(history[0]["role"], "user")
         self.assertEqual(history[1]["role"], "assistant")
+
+        recent = db.get_recent_messages("test_sess", limit=2)
+        self.assertEqual(len(recent), 2)
+        self.assertEqual(recent[0]["role"], "user")
+        self.assertEqual(recent[1]["role"], "assistant")
 
         # Cleanup
         if os.path.exists(test_db_path):

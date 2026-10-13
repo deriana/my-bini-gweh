@@ -153,7 +153,7 @@
     }
     .form-control {
       width: 100%;
-      background: rgba(18, 18, 28, 0.8);
+      background: rgba(18, 18, 28, 0.95);
       border: 1px solid var(--panel-border);
       border-radius: 8px;
       padding: 10px 14px;
@@ -164,6 +164,21 @@
     }
     .form-control:focus {
       border-color: var(--accent);
+    }
+    select.form-control {
+      background-color: #16152b !important;
+      color: #ffffff !important;
+    }
+    select.form-control option,
+    select.form-control optgroup {
+      background-color: #121024 !important;
+      color: #ffffff !important;
+      padding: 6px 12px;
+    }
+    select.form-control optgroup {
+      color: #c084fc !important;
+      font-weight: 700;
+      background-color: #1e193d !important;
     }
     textarea.form-control {
       min-height: 110px;

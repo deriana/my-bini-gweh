@@ -88,6 +88,19 @@ class Database:
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
 
+    def get_recent_messages(self, session_id: str = "default", limit: int = 10) -> List[Dict[str, Any]]:
+        """
+        Returns the last `limit` messages for the session in chronological order (oldest to newest).
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute(
+                "SELECT id, role, content, emotion, timestamp FROM messages WHERE session_id = ? ORDER BY id DESC LIMIT ?",
+                (session_id, limit)
+            )
+            rows = cursor.fetchall()
+            return [dict(row) for row in reversed(rows)]
+
     def get_sessions(self) -> List[Dict[str, Any]]:
         with self._get_connection() as conn:
             cursor = conn.cursor()
