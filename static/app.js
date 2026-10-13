@@ -65,11 +65,6 @@ async function init() {
   initEventListeners();
   initTransformControls();
   initSpeechRecognition();
-
-  // Proactive greeting after model is loaded
-  setTimeout(fetchProactiveGreeting, 2500);
-  // Recurring wellness & hydration reminder every 30 minutes
-  setInterval(fetchProactiveReminder, 30 * 60 * 1000);
 }
 
 // Apply stored custom wallpaper or preset
@@ -145,6 +140,33 @@ async function loadServerConfig() {
         ttsPill.textContent = `TTS: ${names[appConfig.active_tts_provider] || appConfig.active_tts_provider}`;
       }
     }
+
+    // Populate Quick Voice Selector
+    const voiceSelect = document.getElementById("voice-quick-select");
+    if (voiceSelect && appConfig.voices && appConfig.voices.length > 0) {
+      voiceSelect.innerHTML = "";
+      const groups = {};
+      appConfig.voices.forEach((v) => {
+        const char = v.character || (v.name.includes("-") ? v.name.split("-")[0].trim() : "Suara");
+        if (!groups[char]) groups[char] = [];
+        groups[char].push(v);
+      });
+
+      for (const [char, styles] of Object.entries(groups)) {
+        const optGroup = document.createElement("optgroup");
+        optGroup.label = char;
+        styles.forEach((s) => {
+          const opt = document.createElement("option");
+          opt.value = s.id;
+          opt.textContent = `${s.name} [ID: ${s.id}]`;
+          if (String(s.id) === String(appConfig.default_voice)) opt.selected = true;
+          optGroup.appendChild(opt);
+        });
+        voiceSelect.appendChild(optGroup);
+      }
+      if (appConfig.default_voice) voiceSelect.value = String(appConfig.default_voice);
+    }
+
     await switchModel(modelToLoad);
   } catch (err) {
     console.error("Failed to load server config:", err);
@@ -347,9 +369,6 @@ function enableModelDragging() {
       currentPosY = event.data.global.y - dragStart.y;
       currentModel.x = currentPosX;
       currentModel.y = currentPosY;
-    } else if (currentModel && typeof currentModel.focus === "function") {
-      // Real-time eye & head mouse tracking
-      currentModel.focus(event.data.global.x, event.data.global.y);
     }
   });
 
@@ -396,16 +415,28 @@ function escapeHtml(str) {
   return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
+// Cleans any stray tags, brackets, or mood artifacts from display text
+function cleanBubbleText(str) {
+  if (!str) return "";
+  return String(str)
+    .replace(/\[mood:\s*[^\]]+\]/gi, "")
+    .replace(/\[[a-zA-Z0-9_\-]+\]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 // Sets speech bubble content with optional Romaji furigana/subtitle
 function setBubbleContent(item) {
   if (item && item.romaji && item.clean_text) {
-    bubbleText.innerHTML = `<span class="bubble-jp">${escapeHtml(item.clean_text)}</span><span class="bubble-romaji">${escapeHtml(item.romaji)}</span>`;
+    const jpClean = cleanBubbleText(item.clean_text);
+    const roClean = cleanBubbleText(item.romaji);
+    bubbleText.innerHTML = `<span class="bubble-jp">${escapeHtml(jpClean)}</span><span class="bubble-romaji">${escapeHtml(roClean)}</span>`;
   } else if (item && item.display_text) {
-    bubbleText.textContent = item.display_text;
+    bubbleText.textContent = cleanBubbleText(item.display_text);
   } else if (typeof item === "string") {
-    bubbleText.textContent = item;
+    bubbleText.textContent = cleanBubbleText(item);
   } else {
-    bubbleText.textContent = (item && (item.clean_text || item.text)) || "";
+    bubbleText.textContent = cleanBubbleText((item && (item.clean_text || item.text)) || "");
   }
 }
 
@@ -752,7 +783,7 @@ async function sendMessage() {
       text: text,
       image: capturedImage,
       model: currentModelKey,
-      voice: appConfig ? appConfig.default_voice : "3",
+      voice: (document.getElementById("voice-quick-select") && document.getElementById("voice-quick-select").value) || (appConfig ? appConfig.default_voice : "3"),
       session_id: "default",
     })
   );
@@ -958,6 +989,35 @@ function initEventListeners() {
   const langQuickBtn = document.getElementById("lang-quick-btn");
   if (langQuickBtn) {
     langQuickBtn.addEventListener("click", toggleLanguageQuick);
+  }
+
+  const voiceQuickSelect = document.getElementById("voice-quick-select");
+  if (voiceQuickSelect) {
+    voiceQuickSelect.addEventListener("change", async (e) => {
+      const selectedVoice = e.target.value;
+      if (!selectedVoice) return;
+      if (appConfig) appConfig.default_voice = selectedVoice;
+      try {
+        const res = await fetch("/api/settings");
+        const data = await res.json();
+        const cfg = data.config;
+        if (cfg && cfg.tts) {
+          cfg.tts.default_voice = selectedVoice;
+          const activeProv = cfg.tts.active_provider || "voicevox";
+          if (cfg.tts.providers && cfg.tts.providers[activeProv]) {
+            cfg.tts.providers[activeProv].default_voice = selectedVoice;
+          }
+          await fetch("/api/settings", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(cfg)
+          });
+          console.log("Voice updated to ID:", selectedVoice);
+        }
+      } catch (err) {
+        console.error("Failed to update voice:", err);
+      }
+    });
   }
 
   chatInput.addEventListener("keydown", (e) => {

@@ -172,14 +172,6 @@
         currentModel.x = pixiApp.renderer.width / 2;
         currentModel.y = pixiApp.renderer.height * 0.55;
 
-        // Auto head/eye mouse tracking
-        pixiApp.stage.interactive = true;
-        pixiApp.stage.on("pointermove", (e) => {
-          if (currentModel && typeof currentModel.focus === "function") {
-            currentModel.focus(e.data.global.x, e.data.global.y);
-          }
-        });
-
         connectWS();
       } catch (err) {
         console.error("Overlay load error:", err);
@@ -214,14 +206,18 @@
     function showBubble(item) {
       const bubble = document.getElementById("speech-bubble");
       const bText = document.getElementById("bubble-text");
+      function cleanText(s) {
+        if (!s) return "";
+        return String(s).replace(/\[mood:\s*[^\]]+\]/gi, "").replace(/\[[a-zA-Z0-9_\-]+\]/g, "").replace(/\s+/g, " ").trim();
+      }
       if (item && item.romaji && item.clean_text) {
-        bText.innerHTML = `<span class="bubble-jp">${escapeHtml(item.clean_text)}</span><span class="bubble-romaji">${escapeHtml(item.romaji)}</span>`;
+        bText.innerHTML = `<span class="bubble-jp">${escapeHtml(cleanText(item.clean_text))}</span><span class="bubble-romaji">${escapeHtml(cleanText(item.romaji))}</span>`;
       } else if (item && item.display_text) {
-        bText.textContent = item.display_text;
+        bText.textContent = cleanText(item.display_text);
       } else if (typeof item === "string") {
-        bText.textContent = item;
+        bText.textContent = cleanText(item);
       } else {
-        bText.textContent = (item && (item.clean_text || item.text)) || "";
+        bText.textContent = cleanText((item && (item.clean_text || item.text)) || "");
       }
       bubble.classList.remove("hidden");
 

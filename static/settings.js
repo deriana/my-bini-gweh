@@ -213,10 +213,39 @@ function initTTSProviders() {
     });
   }
 
+  function renderSpeakerList(speakers, selectedId) {
+    const vvSelect = document.getElementById("voicevox-speaker-select");
+    if (!vvSelect || !speakers || speakers.length === 0) return;
+    vvSelect.innerHTML = "";
+    const groups = {};
+    speakers.forEach((s) => {
+      const char = s.character || (s.name.includes("-") ? s.name.split("-")[0].trim() : "Lainnya");
+      if (!groups[char]) groups[char] = [];
+      groups[char].push(s);
+    });
+
+    for (const [char, styles] of Object.entries(groups)) {
+      const optGroup = document.createElement("optgroup");
+      optGroup.label = char;
+      styles.forEach((s) => {
+        const opt = document.createElement("option");
+        opt.value = s.id;
+        opt.textContent = `${s.name} [ID: ${s.id}]`;
+        if (String(s.id) === String(selectedId)) opt.selected = true;
+        optGroup.appendChild(opt);
+      });
+      vvSelect.appendChild(optGroup);
+    }
+    if (selectedId) vvSelect.value = String(selectedId);
+  }
+
   // VOICEVOX Live Dynamic Speaker Population helper
   async function populateVoicevoxSpeakers(selectedId) {
-    const vvSelect = document.getElementById("voicevox-speaker-select");
-    if (!vvSelect) return;
+    const vvCfg = currentConfig?.tts?.providers?.voicevox || {};
+    if (vvCfg.available_voices && vvCfg.available_voices.length > 0) {
+      renderSpeakerList(vvCfg.available_voices, selectedId || vvCfg.default_voice || "3");
+    }
+
     try {
       const res = await fetch("/api/tts/voicevox/speakers");
       const data = await res.json();
@@ -226,27 +255,7 @@ function initTTSProviders() {
           badge.className = "status-badge available";
           badge.textContent = `Online (${data.speakers.length} style)`;
         }
-        vvSelect.innerHTML = "";
-        const groups = {};
-        data.speakers.forEach((s) => {
-          const char = s.character || "Lainnya";
-          if (!groups[char]) groups[char] = [];
-          groups[char].push(s);
-        });
-
-        for (const [char, styles] of Object.entries(groups)) {
-          const optGroup = document.createElement("optgroup");
-          optGroup.label = char;
-          styles.forEach((s) => {
-            const opt = document.createElement("option");
-            opt.value = s.id;
-            opt.textContent = `${s.name} [ID: ${s.id}]`;
-            if (String(s.id) === String(selectedId)) opt.selected = true;
-            optGroup.appendChild(opt);
-          });
-          vvSelect.appendChild(optGroup);
-        }
-        if (selectedId) vvSelect.value = String(selectedId);
+        renderSpeakerList(data.speakers, selectedId || vvCfg.default_voice || "3");
       } else {
         if (badge) {
           badge.className = "status-badge offline";

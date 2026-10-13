@@ -153,6 +153,22 @@ class LLMService:
                             clean_text, emotion, expression_idx = parse_emotion_and_clean(sentence, emotion_map)
                             if emotion:
                                 app_logger.info("Emotion", f"Detected emotion: [{emotion}] -> Expr index {expression_idx}")
+                                # Automatically synchronize mood badge from emotion if no explicit mood tag
+                                emotion_mood_map = {
+                                    "joy": "Ceria",
+                                    "blush": "Tersipu",
+                                    "anger": "Ngambek",
+                                    "sadness": "Khawatir",
+                                    "surprise": "Kaget",
+                                    "neutral": "Santai"
+                                }
+                                if not detected_mood and emotion in emotion_mood_map:
+                                    auto_mood = emotion_mood_map[emotion]
+                                    persona_engine.update_mood(auto_mood)
+                                    await websocket.send_json({
+                                        "type": "mood_update",
+                                        "mood": auto_mood
+                                    })
 
                             if clean_text:
                                 from src.core.romanize import to_romaji, format_display_text, contains_japanese
@@ -160,10 +176,10 @@ class LLMService:
                                 romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
                                 display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
 
-                                # Send text immediately to frontend so speech bubble displays without delay
+                                # Send text immediately to frontend (using clean_text so no brackets leak)
                                 await websocket.send_json({
                                     "type": "text",
-                                    "text": sentence,
+                                    "text": clean_text,
                                     "clean_text": clean_text,
                                     "romaji": romaji,
                                     "display_text": display_text,
@@ -176,7 +192,7 @@ class LLMService:
                                     _, audio_b64, volumes = audio_result
                                     await websocket.send_json({
                                         "type": "audio",
-                                        "text": sentence,
+                                        "text": clean_text,
                                         "clean_text": clean_text,
                                         "romaji": romaji,
                                         "display_text": display_text,
@@ -198,6 +214,23 @@ class LLMService:
                     })
 
                 clean_text, emotion, expression_idx = parse_emotion_and_clean(sentence, emotion_map)
+                if emotion and not detected_mood:
+                    emotion_mood_map = {
+                        "joy": "Ceria",
+                        "blush": "Tersipu",
+                        "anger": "Ngambek",
+                        "sadness": "Khawatir",
+                        "surprise": "Kaget",
+                        "neutral": "Santai"
+                    }
+                    if emotion in emotion_mood_map:
+                        auto_mood = emotion_mood_map[emotion]
+                        persona_engine.update_mood(auto_mood)
+                        await websocket.send_json({
+                            "type": "mood_update",
+                            "mood": auto_mood
+                        })
+
                 if clean_text:
                     from src.core.romanize import to_romaji, format_display_text, contains_japanese
                     subtitle_fmt = persona_engine.get_persona_data().get("subtitle_format", "both")
@@ -207,7 +240,7 @@ class LLMService:
                     # Send text immediately
                     await websocket.send_json({
                         "type": "text",
-                        "text": sentence,
+                        "text": clean_text,
                         "clean_text": clean_text,
                         "romaji": romaji,
                         "display_text": display_text,
@@ -220,7 +253,7 @@ class LLMService:
                         _, audio_b64, volumes = audio_result
                         await websocket.send_json({
                             "type": "audio",
-                            "text": sentence,
+                            "text": clean_text,
                             "clean_text": clean_text,
                             "romaji": romaji,
                             "display_text": display_text,

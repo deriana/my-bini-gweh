@@ -91,38 +91,892 @@
         "speed": 1,
         "available_voices": [
           {
-            "id": "3",
-            "name": "Zundamon (ずんだもん - Normal)",
-            "lang": "ja-JP"
-          },
-          {
-            "id": "1",
-            "name": "Zundamon (ずんだもん - Amaama/Manja)",
-            "lang": "ja-JP"
-          },
-          {
-            "id": "7",
-            "name": "Zundamon (ずんだもん - Tsuntsun/Tsundere)",
-            "lang": "ja-JP"
-          },
-          {
             "id": "2",
-            "name": "Shikoku Metan (四国めたん - Normal)",
+            "name": "四国めたん - ノーマル",
+            "character": "四国めたん",
+            "style": "ノーマル",
             "lang": "ja-JP"
           },
           {
             "id": "0",
-            "name": "Shikoku Metan (四国めたん - Amaama)",
+            "name": "四国めたん - あまあま",
+            "character": "四国めたん",
+            "style": "あまあま",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "6",
+            "name": "四国めたん - ツンツン",
+            "character": "四国めたん",
+            "style": "ツンツン",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "4",
+            "name": "四国めたん - セクシー",
+            "character": "四国めたん",
+            "style": "セクシー",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "36",
+            "name": "四国めたん - ささやき",
+            "character": "四国めたん",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "37",
+            "name": "四国めたん - ヒソヒソ",
+            "character": "四国めたん",
+            "style": "ヒソヒソ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "3",
+            "name": "ずんだもん - ノーマル",
+            "character": "ずんだもん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "1",
+            "name": "ずんだもん - あまあま",
+            "character": "ずんだもん",
+            "style": "あまあま",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "7",
+            "name": "ずんだもん - ツンツン",
+            "character": "ずんだもん",
+            "style": "ツンツン",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "5",
+            "name": "ずんだもん - セクシー",
+            "character": "ずんだもん",
+            "style": "セクシー",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "22",
+            "name": "ずんだもん - ささやき",
+            "character": "ずんだもん",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "38",
+            "name": "ずんだもん - ヒソヒソ",
+            "character": "ずんだもん",
+            "style": "ヒソヒソ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "75",
+            "name": "ずんだもん - ヘロヘロ",
+            "character": "ずんだもん",
+            "style": "ヘロヘロ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "76",
+            "name": "ずんだもん - なみだめ",
+            "character": "ずんだもん",
+            "style": "なみだめ",
             "lang": "ja-JP"
           },
           {
             "id": "8",
-            "name": "Kasukabe Tsumugi (春日部つむぎ - Normal)",
+            "name": "春日部つむぎ - ノーマル",
+            "character": "春日部つむぎ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "10",
+            "name": "雨晴はう - ノーマル",
+            "character": "雨晴はう",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "9",
+            "name": "波音リツ - ノーマル",
+            "character": "波音リツ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "65",
+            "name": "波音リツ - クイーン",
+            "character": "波音リツ",
+            "style": "クイーン",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "11",
+            "name": "玄野武宏 - ノーマル",
+            "character": "玄野武宏",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "39",
+            "name": "玄野武宏 - 喜び",
+            "character": "玄野武宏",
+            "style": "喜び",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "40",
+            "name": "玄野武宏 - ツンギレ",
+            "character": "玄野武宏",
+            "style": "ツンギレ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "41",
+            "name": "玄野武宏 - 悲しみ",
+            "character": "玄野武宏",
+            "style": "悲しみ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "12",
+            "name": "白上虎太郎 - ふつう",
+            "character": "白上虎太郎",
+            "style": "ふつう",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "32",
+            "name": "白上虎太郎 - わーい",
+            "character": "白上虎太郎",
+            "style": "わーい",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "33",
+            "name": "白上虎太郎 - びくびく",
+            "character": "白上虎太郎",
+            "style": "びくびく",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "34",
+            "name": "白上虎太郎 - おこ",
+            "character": "白上虎太郎",
+            "style": "おこ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "35",
+            "name": "白上虎太郎 - びえーん",
+            "character": "白上虎太郎",
+            "style": "びえーん",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "13",
+            "name": "青山龍星 - ノーマル",
+            "character": "青山龍星",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "81",
+            "name": "青山龍星 - 熱血",
+            "character": "青山龍星",
+            "style": "熱血",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "82",
+            "name": "青山龍星 - 不機嫌",
+            "character": "青山龍星",
+            "style": "不機嫌",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "83",
+            "name": "青山龍星 - 喜び",
+            "character": "青山龍星",
+            "style": "喜び",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "84",
+            "name": "青山龍星 - しっとり",
+            "character": "青山龍星",
+            "style": "しっとり",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "85",
+            "name": "青山龍星 - かなしみ",
+            "character": "青山龍星",
+            "style": "かなしみ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "86",
+            "name": "青山龍星 - 囁き",
+            "character": "青山龍星",
+            "style": "囁き",
             "lang": "ja-JP"
           },
           {
             "id": "14",
-            "name": "Meimei Himari (冥鳴ひまり - Normal)",
+            "name": "冥鳴ひまり - ノーマル",
+            "character": "冥鳴ひまり",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "16",
+            "name": "九州そら - ノーマル",
+            "character": "九州そら",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "15",
+            "name": "九州そら - あまあま",
+            "character": "九州そら",
+            "style": "あまあま",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "18",
+            "name": "九州そら - ツンツン",
+            "character": "九州そら",
+            "style": "ツンツン",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "17",
+            "name": "九州そら - セクシー",
+            "character": "九州そら",
+            "style": "セクシー",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "19",
+            "name": "九州そら - ささやき",
+            "character": "九州そら",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "20",
+            "name": "もち子さん - ノーマル",
+            "character": "もち子さん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "66",
+            "name": "もち子さん - セクシー／あん子",
+            "character": "もち子さん",
+            "style": "セクシー／あん子",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "77",
+            "name": "もち子さん - 泣き",
+            "character": "もち子さん",
+            "style": "泣き",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "78",
+            "name": "もち子さん - 怒り",
+            "character": "もち子さん",
+            "style": "怒り",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "79",
+            "name": "もち子さん - 喜び",
+            "character": "もち子さん",
+            "style": "喜び",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "80",
+            "name": "もち子さん - のんびり",
+            "character": "もち子さん",
+            "style": "のんびり",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "21",
+            "name": "剣崎雌雄 - ノーマル",
+            "character": "剣崎雌雄",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "23",
+            "name": "WhiteCUL - ノーマル",
+            "character": "WhiteCUL",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "24",
+            "name": "WhiteCUL - たのしい",
+            "character": "WhiteCUL",
+            "style": "たのしい",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "25",
+            "name": "WhiteCUL - かなしい",
+            "character": "WhiteCUL",
+            "style": "かなしい",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "26",
+            "name": "WhiteCUL - びえーん",
+            "character": "WhiteCUL",
+            "style": "びえーん",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "27",
+            "name": "後鬼 - 人間ver.",
+            "character": "後鬼",
+            "style": "人間ver.",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "28",
+            "name": "後鬼 - ぬいぐるみver.",
+            "character": "後鬼",
+            "style": "ぬいぐるみver.",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "87",
+            "name": "後鬼 - 人間（怒り）ver.",
+            "character": "後鬼",
+            "style": "人間（怒り）ver.",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "88",
+            "name": "後鬼 - 鬼ver.",
+            "character": "後鬼",
+            "style": "鬼ver.",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "29",
+            "name": "No.7 - ノーマル",
+            "character": "No.7",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "30",
+            "name": "No.7 - アナウンス",
+            "character": "No.7",
+            "style": "アナウンス",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "31",
+            "name": "No.7 - 読み聞かせ",
+            "character": "No.7",
+            "style": "読み聞かせ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "42",
+            "name": "ちび式じい - ノーマル",
+            "character": "ちび式じい",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "43",
+            "name": "櫻歌ミコ - ノーマル",
+            "character": "櫻歌ミコ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "44",
+            "name": "櫻歌ミコ - 第二形態",
+            "character": "櫻歌ミコ",
+            "style": "第二形態",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "45",
+            "name": "櫻歌ミコ - ロリ",
+            "character": "櫻歌ミコ",
+            "style": "ロリ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "46",
+            "name": "小夜/SAYO - ノーマル",
+            "character": "小夜/SAYO",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "47",
+            "name": "ナースロボ＿タイプＴ - ノーマル",
+            "character": "ナースロボ＿タイプＴ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "48",
+            "name": "ナースロボ＿タイプＴ - 楽々",
+            "character": "ナースロボ＿タイプＴ",
+            "style": "楽々",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "49",
+            "name": "ナースロボ＿タイプＴ - 恐怖",
+            "character": "ナースロボ＿タイプＴ",
+            "style": "恐怖",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "50",
+            "name": "ナースロボ＿タイプＴ - 内緒話",
+            "character": "ナースロボ＿タイプＴ",
+            "style": "内緒話",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "51",
+            "name": "†聖騎士 紅桜† - ノーマル",
+            "character": "†聖騎士 紅桜†",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "52",
+            "name": "雀松朱司 - ノーマル",
+            "character": "雀松朱司",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "53",
+            "name": "麒ヶ島宗麟 - ノーマル",
+            "character": "麒ヶ島宗麟",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "54",
+            "name": "春歌ナナ - ノーマル",
+            "character": "春歌ナナ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "55",
+            "name": "猫使アル - ノーマル",
+            "character": "猫使アル",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "56",
+            "name": "猫使アル - おちつき",
+            "character": "猫使アル",
+            "style": "おちつき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "57",
+            "name": "猫使アル - うきうき",
+            "character": "猫使アル",
+            "style": "うきうき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "110",
+            "name": "猫使アル - つよつよ",
+            "character": "猫使アル",
+            "style": "つよつよ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "111",
+            "name": "猫使アル - へろへろ",
+            "character": "猫使アル",
+            "style": "へろへろ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "58",
+            "name": "猫使ビィ - ノーマル",
+            "character": "猫使ビィ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "59",
+            "name": "猫使ビィ - おちつき",
+            "character": "猫使ビィ",
+            "style": "おちつき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "60",
+            "name": "猫使ビィ - 人見知り",
+            "character": "猫使ビィ",
+            "style": "人見知り",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "112",
+            "name": "猫使ビィ - つよつよ",
+            "character": "猫使ビィ",
+            "style": "つよつよ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "61",
+            "name": "中国うさぎ - ノーマル",
+            "character": "中国うさぎ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "62",
+            "name": "中国うさぎ - おどろき",
+            "character": "中国うさぎ",
+            "style": "おどろき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "63",
+            "name": "中国うさぎ - こわがり",
+            "character": "中国うさぎ",
+            "style": "こわがり",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "64",
+            "name": "中国うさぎ - へろへろ",
+            "character": "中国うさぎ",
+            "style": "へろへろ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "67",
+            "name": "栗田まろん - ノーマル",
+            "character": "栗田まろん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "68",
+            "name": "あいえるたん - ノーマル",
+            "character": "あいえるたん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "69",
+            "name": "満別花丸 - ノーマル",
+            "character": "満別花丸",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "70",
+            "name": "満別花丸 - 元気",
+            "character": "満別花丸",
+            "style": "元気",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "71",
+            "name": "満別花丸 - ささやき",
+            "character": "満別花丸",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "72",
+            "name": "満別花丸 - ぶりっ子",
+            "character": "満別花丸",
+            "style": "ぶりっ子",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "73",
+            "name": "満別花丸 - ボーイ",
+            "character": "満別花丸",
+            "style": "ボーイ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "74",
+            "name": "琴詠ニア - ノーマル",
+            "character": "琴詠ニア",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "89",
+            "name": "Voidoll - ノーマル",
+            "character": "Voidoll",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "90",
+            "name": "ぞん子 - ノーマル",
+            "character": "ぞん子",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "91",
+            "name": "ぞん子 - 低血圧",
+            "character": "ぞん子",
+            "style": "低血圧",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "92",
+            "name": "ぞん子 - 覚醒",
+            "character": "ぞん子",
+            "style": "覚醒",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "93",
+            "name": "ぞん子 - 実況風",
+            "character": "ぞん子",
+            "style": "実況風",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "94",
+            "name": "中部つるぎ - ノーマル",
+            "character": "中部つるぎ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "95",
+            "name": "中部つるぎ - 怒り",
+            "character": "中部つるぎ",
+            "style": "怒り",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "96",
+            "name": "中部つるぎ - ヒソヒソ",
+            "character": "中部つるぎ",
+            "style": "ヒソヒソ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "97",
+            "name": "中部つるぎ - おどおど",
+            "character": "中部つるぎ",
+            "style": "おどおど",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "98",
+            "name": "中部つるぎ - 絶望と敗北",
+            "character": "中部つるぎ",
+            "style": "絶望と敗北",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "99",
+            "name": "離途 - ノーマル",
+            "character": "離途",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "101",
+            "name": "離途 - シリアス",
+            "character": "離途",
+            "style": "シリアス",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "100",
+            "name": "黒沢冴白 - ノーマル",
+            "character": "黒沢冴白",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "102",
+            "name": "ユーレイちゃん - ノーマル",
+            "character": "ユーレイちゃん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "103",
+            "name": "ユーレイちゃん - 甘々",
+            "character": "ユーレイちゃん",
+            "style": "甘々",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "104",
+            "name": "ユーレイちゃん - 哀しみ",
+            "character": "ユーレイちゃん",
+            "style": "哀しみ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "105",
+            "name": "ユーレイちゃん - ささやき",
+            "character": "ユーレイちゃん",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "106",
+            "name": "ユーレイちゃん - ツクモちゃん",
+            "character": "ユーレイちゃん",
+            "style": "ツクモちゃん",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "107",
+            "name": "東北ずん子 - ノーマル",
+            "character": "東北ずん子",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "108",
+            "name": "東北きりたん - ノーマル",
+            "character": "東北きりたん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "109",
+            "name": "東北イタコ - ノーマル",
+            "character": "東北イタコ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "113",
+            "name": "あんこもん - ノーマル",
+            "character": "あんこもん",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "114",
+            "name": "あんこもん - つよつよ",
+            "character": "あんこもん",
+            "style": "つよつよ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "115",
+            "name": "あんこもん - よわよわ",
+            "character": "あんこもん",
+            "style": "よわよわ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "116",
+            "name": "あんこもん - けだるげ",
+            "character": "あんこもん",
+            "style": "けだるげ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "117",
+            "name": "あんこもん - ささやき",
+            "character": "あんこもん",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "118",
+            "name": "夜語トバリ - ノーマル",
+            "character": "夜語トバリ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "119",
+            "name": "夜語トバリ - 明るい",
+            "character": "夜語トバリ",
+            "style": "明るい",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "120",
+            "name": "夜語トバリ - 哀しみ",
+            "character": "夜語トバリ",
+            "style": "哀しみ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "121",
+            "name": "夜語トバリ - 呆れ",
+            "character": "夜語トバリ",
+            "style": "呆れ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "122",
+            "name": "暁記ミタマ - ノーマル",
+            "character": "暁記ミタマ",
+            "style": "ノーマル",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "123",
+            "name": "暁記ミタマ - 怒り",
+            "character": "暁記ミタマ",
+            "style": "怒り",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "124",
+            "name": "暁記ミタマ - 哀しみ",
+            "character": "暁記ミタマ",
+            "style": "哀しみ",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "125",
+            "name": "暁記ミタマ - ささやき",
+            "character": "暁記ミタマ",
+            "style": "ささやき",
+            "lang": "ja-JP"
+          },
+          {
+            "id": "126",
+            "name": "里石ユカ - つぼみ",
+            "character": "里石ユカ",
+            "style": "つぼみ",
             "lang": "ja-JP"
           }
         ]

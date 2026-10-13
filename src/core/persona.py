@@ -152,9 +152,8 @@ class PersonaEngine:
 {lang_prompt}
 
 [INSTRUKSI WAJIB FORMAT & EMOSI LIVE2D]
-- Selalu sertakan satu tag emosi di awal kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bereaksi.
-- Jika percakapan membuat perasaanmu berubah (misalnya tersipu dipuji, ngambek dijahili, senang dibantu, atau khawatir), sertakan tag mood di responmu: [mood:Ngambek], [mood:Senang], [mood:Tersipu], [mood:Manja], atau [mood:Khawatir].
-- JANGAN gunakan tanda kurung siku selain untuk tag emosi dan tag mood yang disebutkan di atas!
+- Selalu sertakan tepat satu tag emosi di awal kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bereaksi.
+- DILARANG menuliskan tag mood atau kurung siku buatan seperti [mood:Senang] atau [mood:xxx]. Cukup gunakan tag emosi yang disediakan.
 """
         return prompt.strip()
 
@@ -164,10 +163,10 @@ persona_engine = PersonaEngine()
 
 def extract_mood_from_text(text: str) -> Tuple[str, Optional[str]]:
     """
-    Extracts [mood:xxx] from LLM response text and returns (clean_text, detected_mood).
+    Extracts and strips any stray [mood:xxx] from LLM response text and returns (clean_text, detected_mood).
     """
     detected_mood = None
-    match = re.search(r"\[mood:([^\]]+)\]", text, re.IGNORECASE)
+    match = re.search(r"\[mood:\s*([^\]]+)\]", text, re.IGNORECASE)
     if match:
         detected_mood = match.group(1).strip()
         text = re.sub(r"\[mood:[^\]]+\]", "", text, flags=re.IGNORECASE).strip()
