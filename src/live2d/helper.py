@@ -5,19 +5,49 @@ from pydub import AudioSegment
 from pydub.utils import make_chunks
 
 
+EMOTION_SYNONYMS = {
+    "marah": "anger",
+    "ngambek": "anger",
+    "kesal": "anger",
+    "furious": "anger",
+    "senang": "joy",
+    "gembira": "joy",
+    "bahagia": "joy",
+    "happy": "joy",
+    "sedih": "sadness",
+    "khawatir": "sadness",
+    "nangis": "sadness",
+    "tersipu": "blush",
+    "malu": "blush",
+    "shy": "blush",
+    "blushing": "blush",
+    "tsundere": "blush",
+    "kaget": "surprise",
+    "terkejut": "surprise",
+    "shock": "surprise",
+    "calm": "neutral",
+    "biasa": "neutral"
+}
+
+
 def parse_emotion_and_clean(text: str, emotion_map: Dict[str, int]) -> Tuple[str, Optional[str], Optional[int]]:
     """
-    Extracts emotion tag (e.g., [joy], [sadness]) from text,
+    Extracts emotion tag (e.g., [joy], [sadness], [blush], [ngambek]) from text,
     maps it to the model's expression index, and returns the cleaned text.
     """
     detected_emotion = None
     expression_index = None
 
-    # Find emotion tags like [joy], [anger], etc.
+    # Find emotion tags like [joy], [anger], [blush], etc.
     matches = re.findall(r"\[([a-zA-Z0-9_\-]+)\]", text)
     for tag in matches:
         tag_lower = tag.lower()
-        if tag_lower in emotion_map:
+        canon = EMOTION_SYNONYMS.get(tag_lower, tag_lower)
+        if canon in emotion_map:
+            detected_emotion = canon
+            expression_index = emotion_map[canon]
+            break
+        elif tag_lower in emotion_map:
             detected_emotion = tag_lower
             expression_index = emotion_map[tag_lower]
             break

@@ -186,6 +186,29 @@ function updateMoodBadge(mood) {
 
   if (moodIcon) moodIcon.textContent = icon;
   moodText.textContent = `Mood: ${mood}`;
+
+  // Synchronize Live2D Model Expression with current emotional mood
+  if (appConfig && appConfig.models && currentModelKey) {
+    const modelCfg = appConfig.models[currentModelKey];
+    const emotions = modelCfg?.emotions || {};
+    let targetExpr = null;
+
+    if (m.includes("ngambek") || m.includes("marah") || m.includes("kesal")) {
+      targetExpr = emotions.anger !== undefined ? emotions.anger : 7;
+    } else if (m.includes("tersipu") || m.includes("malu") || m.includes("blush")) {
+      targetExpr = emotions.blush !== undefined ? emotions.blush : 5;
+    } else if (m.includes("khawatir") || m.includes("sedih")) {
+      targetExpr = emotions.sadness !== undefined ? emotions.sadness : 4;
+    } else if (m.includes("manja") || m.includes("sayang") || m.includes("ceria")) {
+      targetExpr = emotions.joy !== undefined ? emotions.joy : 1;
+    } else {
+      targetExpr = emotions.neutral !== undefined ? emotions.neutral : 0;
+    }
+
+    if (targetExpr !== null && targetExpr !== undefined) {
+      setModelExpression(targetExpr);
+    }
+  }
 }
 
 // Dominant Language Badge & Quick Toggle helper
@@ -268,10 +291,9 @@ async function switchModel(modelKey) {
 
     updateStatus("Online", "status-online");
 
-    // Trigger proactive greeting upon startup/model switch
-    if (!window.__hasGreeted) {
-      window.__hasGreeted = true;
-      setTimeout(fetchProactiveGreeting, 1200);
+    // Sync initial model expression to active mood
+    if (appConfig && appConfig.persona && appConfig.persona.current_mood) {
+      updateMoodBadge(appConfig.persona.current_mood);
     }
   } catch (err) {
     console.error("Failed to load Live2D model:", err);
@@ -592,8 +614,10 @@ function playNextAudio() {
     setModelExpression(item.expression_index);
   }
 
-  // Play audio
-  const audio = new Audio("data:audio/mp3;base64," + item.audio);
+  // Play audio (supports WAV from VOICEVOX/Kokoro and MP3 from Edge)
+  const isWav = item.audio && (item.audio.startsWith("UklGR") || item.audio.length > 50000);
+  const mime = isWav ? "audio/wav" : "audio/mp3";
+  const audio = new Audio(`data:${mime};base64,` + item.audio);
   const volumes = item.volumes || [];
   const chunkLengthMs = 20;
   let startTime = null;
@@ -665,6 +689,9 @@ function connectWebSocket() {
       } else if (msg.type === "text") {
         setBubbleContent(msg);
         speechBubble.classList.remove("hidden");
+        if (msg.expression_index !== null && msg.expression_index !== undefined) {
+          setModelExpression(msg.expression_index);
+        }
       } else if (msg.type === "done") {
         updateStatus("Online", "status-online");
       }

@@ -213,6 +213,51 @@ function initTTSProviders() {
     });
   }
 
+  // VOICEVOX Live Dynamic Speaker Population helper
+  async function populateVoicevoxSpeakers(selectedId) {
+    const vvSelect = document.getElementById("voicevox-speaker-select");
+    if (!vvSelect) return;
+    try {
+      const res = await fetch("/api/tts/voicevox/speakers");
+      const data = await res.json();
+      const badge = document.getElementById("badge-voicevox");
+      if (data.speakers && data.speakers.length > 0) {
+        if (badge) {
+          badge.className = "status-badge available";
+          badge.textContent = `Online (${data.speakers.length} style)`;
+        }
+        vvSelect.innerHTML = "";
+        const groups = {};
+        data.speakers.forEach((s) => {
+          const char = s.character || "Lainnya";
+          if (!groups[char]) groups[char] = [];
+          groups[char].push(s);
+        });
+
+        for (const [char, styles] of Object.entries(groups)) {
+          const optGroup = document.createElement("optgroup");
+          optGroup.label = char;
+          styles.forEach((s) => {
+            const opt = document.createElement("option");
+            opt.value = s.id;
+            opt.textContent = `${s.name} [ID: ${s.id}]`;
+            if (String(s.id) === String(selectedId)) opt.selected = true;
+            optGroup.appendChild(opt);
+          });
+          vvSelect.appendChild(optGroup);
+        }
+        if (selectedId) vvSelect.value = String(selectedId);
+      } else {
+        if (badge) {
+          badge.className = "status-badge offline";
+          badge.textContent = "Offline (50021)";
+        }
+      }
+    } catch (err) {
+      console.warn("Failed to fetch live VOICEVOX speakers:", err);
+    }
+  }
+
   // VOICEVOX Live Connection Check
   const vvRefreshBtn = document.getElementById("voicevox-refresh-btn");
   if (vvRefreshBtn) {
@@ -220,33 +265,10 @@ function initTTSProviders() {
       vvRefreshBtn.textContent = "Mengecek...";
       vvRefreshBtn.disabled = true;
       try {
-        const res = await fetch("/api/tts/voicevox/speakers");
-        const data = await res.json();
-        const badge = document.getElementById("badge-voicevox");
-        if (data.speakers && data.speakers.length > 0) {
-          if (badge) {
-            badge.className = "status-badge available";
-            badge.textContent = `Online (${data.speakers.length} style)`;
-          }
-
-          const select = document.getElementById("voicevox-speaker-select");
-          if (select) {
-            select.innerHTML = "";
-            data.speakers.forEach((s) => {
-              const opt = document.createElement("option");
-              opt.value = s.id;
-              opt.textContent = `${s.name} [ID: ${s.id}]`;
-              select.appendChild(opt);
-            });
-          }
-          showToast(`Berhasil terhubung ke VOICEVOX (${data.speakers.length} karakter ditemukan)!`);
-        } else {
-          if (badge) {
-            badge.className = "status-badge offline";
-            badge.textContent = "Offline (50021)";
-          }
-          showToast("Engine VOICEVOX belum aktif di port 50021", "#eab308");
-        }
+        const vvSelect = document.getElementById("voicevox-speaker-select");
+        const currentVal = vvSelect ? vvSelect.value : "3";
+        await populateVoicevoxSpeakers(currentVal);
+        showToast("Daftar karakter VOICEVOX berhasil diperbarui!");
       } catch (err) {
         showToast("Gagal menghubungi VOICEVOX: " + err.message, "#ef4444");
       } finally {
@@ -326,17 +348,7 @@ async function loadSettings() {
     const vvCfg = providers.voicevox || {};
     const vvUrl = document.getElementById("voicevox-base-url");
     if (vvUrl) vvUrl.value = vvCfg.base_url || "http://127.0.0.1:50021";
-    const vvSelect = document.getElementById("voicevox-speaker-select");
-    if (vvSelect) {
-      vvSelect.innerHTML = "";
-      (vvCfg.available_voices || []).forEach((v) => {
-        const opt = document.createElement("option");
-        opt.value = v.id;
-        opt.textContent = v.name;
-        if (v.id === vvCfg.default_voice) opt.selected = true;
-        vvSelect.appendChild(opt);
-      });
-    }
+    populateVoicevoxSpeakers(vvCfg.default_voice || "3");
     const vvSpeed = vvCfg.speed !== undefined ? vvCfg.speed : 1.0;
     const vvSlider = document.getElementById("voicevox-speed-slider");
     if (vvSlider) {

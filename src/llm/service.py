@@ -127,8 +127,8 @@ class LLMService:
                             if tc.function.arguments:
                                 tool_calls_accumulator[idx]["arguments"] += tc.function.arguments
 
-                # Process streamed content text
-                if delta.content:
+                # Process streamed content text (only when not accumulating tool calls)
+                if delta.content and not tool_calls_accumulator and not delta.tool_calls:
                     piece = delta.content
                     full_response_text += piece
                     buffer += piece
@@ -160,6 +160,17 @@ class LLMService:
                                 romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
                                 display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
 
+                                # Send text immediately to frontend so speech bubble displays without delay
+                                await websocket.send_json({
+                                    "type": "text",
+                                    "text": sentence,
+                                    "clean_text": clean_text,
+                                    "romaji": romaji,
+                                    "display_text": display_text,
+                                    "emotion": emotion,
+                                    "expression_index": expression_idx
+                                })
+
                                 audio_result = await self.tts_engine.generate_audio(clean_text, active_voice, emotion)
                                 if audio_result:
                                     _, audio_b64, volumes = audio_result
@@ -174,19 +185,9 @@ class LLMService:
                                         "audio": audio_b64,
                                         "volumes": volumes
                                     })
-                                else:
-                                    await websocket.send_json({
-                                        "type": "text",
-                                        "text": sentence,
-                                        "clean_text": clean_text,
-                                        "romaji": romaji,
-                                        "display_text": display_text,
-                                        "emotion": emotion,
-                                        "expression_index": expression_idx
-                                    })
 
-            # Process leftover text in buffer
-            if buffer.strip():
+            # Process leftover text in buffer (if no tool calls)
+            if buffer.strip() and not tool_calls_accumulator:
                 sentence = buffer.strip()
                 sentence, detected_mood = extract_mood_from_text(sentence)
                 if detected_mood:
@@ -203,6 +204,17 @@ class LLMService:
                     romaji = to_romaji(clean_text) if contains_japanese(clean_text) else None
                     display_text = format_display_text(clean_text, subtitle_format=subtitle_fmt)
 
+                    # Send text immediately
+                    await websocket.send_json({
+                        "type": "text",
+                        "text": sentence,
+                        "clean_text": clean_text,
+                        "romaji": romaji,
+                        "display_text": display_text,
+                        "emotion": emotion,
+                        "expression_index": expression_idx
+                    })
+
                     audio_result = await self.tts_engine.generate_audio(clean_text, active_voice, emotion)
                     if audio_result:
                         _, audio_b64, volumes = audio_result
@@ -216,16 +228,6 @@ class LLMService:
                             "expression_index": expression_idx,
                             "audio": audio_b64,
                             "volumes": volumes
-                        })
-                    else:
-                        await websocket.send_json({
-                            "type": "text",
-                            "text": sentence,
-                            "clean_text": clean_text,
-                            "romaji": romaji,
-                            "display_text": display_text,
-                            "emotion": emotion,
-                            "expression_index": expression_idx
                         })
 
             elapsed = round(time.time() - start_time, 2)

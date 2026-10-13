@@ -5,9 +5,9 @@
   },
   "llm": {
     "provider": "ollama",
+    "model": "qwen2.5:3b",
     "base_url": "http://127.0.0.1:11434/v1",
     "api_key": "ollama",
-    "model": "qwen2.5:3b",
     "temperature": 0.7,
     "system_prompt": "Kamu adalah asisten AI pribadi bernama Ryza yang ramah, ekspresif, cerdas, dan menyenangkan. Kamu berbicara santai dan akrab dalam bahasa Indonesia. Selalu sertakan satu tag emosi di awal atau tengah kalimat seperti [joy], [sadness], [anger], [blush], [surprise], atau [neutral] agar avatar Live2D kamu bisa bereaksi sesuai perasaanmu. Contoh: '[joy] Halo! Senang sekali bisa ngobrol bareng kamu hari ini. Ada yang bisa aku bantu?' Jangan gunakan tag emosi selain yang disebutkan."
   },
@@ -55,7 +55,7 @@
       "kokoro": {
         "python_path": "/home/hideri/coding/kokoro-arch/.venv/bin/python3",
         "default_voice": "jf_alpha",
-        "speed": 1.0,
+        "speed": 1,
         "lang_code": "j",
         "available_voices": [
           {
@@ -88,7 +88,7 @@
       "voicevox": {
         "base_url": "http://127.0.0.1:50021",
         "default_voice": "3",
-        "speed": 1.0,
+        "speed": 1,
         "available_voices": [
           {
             "id": "3",
@@ -132,7 +132,7 @@
         "api_key": "",
         "model": "tts-1",
         "default_voice": "alloy",
-        "speed": 1.0,
+        "speed": 1,
         "response_format": "mp3",
         "available_voices": [
           {
@@ -180,14 +180,14 @@
         "y": 0.2,
         "emotions": {
           "neutral": 0,
-          "anger": 2,
-          "disgust": 2,
-          "fear": 1,
-          "joy": 3,
-          "smirk": 3,
-          "sadness": 1,
-          "surprise": 3,
-          "blush": 3
+          "joy": 1,
+          "sadness": 4,
+          "anger": 7,
+          "blush": 5,
+          "surprise": 6,
+          "fear": 4,
+          "disgust": 7,
+          "smirk": 3
         }
       },
       "shiroko": {
@@ -225,7 +225,7 @@
   "persona": {
     "character_name": "Ryza",
     "user_call_name": "Sayang",
-    "active_archetype": "tsundere",
+    "active_archetype": "sahabat",
     "dominant_language": "ja",
     "subtitle_format": "both",
     "affection_level": 75,
