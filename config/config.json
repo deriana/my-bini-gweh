@@ -13,7 +13,7 @@
   },
   "tts": {
     "active_provider": "voicevox",
-    "default_voice": "3",
+    "default_voice": "14",
     "providers": {
       "edge": {
         "default_voice": "id-ID-GadisNeural",
@@ -87,7 +87,7 @@
       },
       "voicevox": {
         "base_url": "http://127.0.0.1:50021",
-        "default_voice": "3",
+        "default_voice": "14",
         "speed": 1,
         "available_voices": [
           {

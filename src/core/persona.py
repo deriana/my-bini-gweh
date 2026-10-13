@@ -138,7 +138,7 @@ class PersonaEngine:
 - Bahasa utamamu adalah BAHASA JEPANG alami (Conversational Japanese / 日本語). Selalu jawablah dalam kalimat bahasa Jepang yang natural, santai, dan ekspresif layaknya karakter anime.
 - Tuliskan jawaban dalam huruf Jepang asli (Kanji/Hiragana/Katakana) tanpa menulis huruf Romaji di teks utama.
 - {jp_call_note}
-- DILARANG KERAS menuliskan kata-kata acak dalam tanda kurung siku seperti [watashi], [now], [asagi], atau sejenisnya! Tuliskan bahasa Jepang secara wajar tanpa membungkus kata biasa dalam tanda kurung."""
+- Tuliskan kalimat secara alami dan fasih. JANGAN membungkus kata-kata biasa dengan tanda kurung siku []. Tanda kurung siku HANYA untuk tag emosi di awal kalimat."""
         elif dominant_lang == "en":
             lang_prompt = f"""[BAHASA & GAYA KOMUNIKASI]
 - Your primary language is natural, expressive ENGLISH. Speak fluently, warmly, and engagingly. Call the user '{user_call}'."""
